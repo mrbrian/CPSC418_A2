@@ -188,7 +188,11 @@ public class CryptoUtilities {
 
 	public static void encryptAndSend(byte[] bytes, SecretKeySpec key, DataOutputStream out) throws IOException {
 		byte[] encrypted = aes_encrypt(bytes, key);
+<<<<<<< HEAD
 		out.write(encrypted);
+=======
+		out.write(bytes);
+>>>>>>> 5420f5c1bcd874cb31121cce5e3b9faa136b1e73
 	}
 
 	public static byte[] append_hash(byte[] msg, SecretKeySpec key) {
