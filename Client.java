@@ -43,7 +43,7 @@ public class Client
 	// set the debug flag
 	debug = setDebug;
 
-	// open reader for usesr input
+	// open reader for uses input
 	stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 	// Try to connect to the specified host on the specified port.
@@ -186,9 +186,6 @@ public class Client
 	    System.out.println("Error sending encrypted file");
 	    close();
 	    return false;
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
 	}
 
 
@@ -201,11 +198,11 @@ public class Client
 
 	    debug("Got acknowledgement = " + ack);
 	    if (ack.compareTo("Passed") == 0) {
-		System.out.println("File received and verified");
-		transferOK = true;
+			System.out.println("File received and verified");
+			transferOK = true;
 	    }
 	    else {
-		System.out.println("Error verifying file");
+	    	System.out.println("Error verifying file");
 	    }
 	}
 	catch (IOException e) {
