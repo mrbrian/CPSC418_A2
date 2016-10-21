@@ -26,12 +26,14 @@ public class CryptoUtilities {
 	SecureRandom RNG = null;
 	String decrypted_str = null;	
 
-	public static byte[] receiveAndDecrypt(SecretKeySpec key, DataInputStream in) {
-		// TODO Auto-generated method stub
-		return null;
+	public static byte[] receiveAndDecrypt(SecretKeySpec key, DataInputStream in) throws IOException {
+		byte[] ciphtext = new byte[in.available()];
+		in.read(ciphtext);
+		byte[] plain_msg_digest = aes_decrypt(ciphtext, key);
+		return plain_msg_digest;
 	}
 	
-	public static String aes_decrypt(byte[] data_in, SecretKeySpec sec_key_spec) {
+	public static byte[] aes_decrypt(byte[] data_in, SecretKeySpec sec_key_spec) {
 		byte[] decrypted = null;
 		String dec_str = null;
 		try{
@@ -41,14 +43,11 @@ public class CryptoUtilities {
 
 			//do decryption
 			decrypted = sec_cipher.doFinal(data_in);
-
-			//convert to string
-			dec_str = new String(decrypted);
 		}
 		catch(Exception e){
 			System.out.println(e);
 		}
-		return dec_str;
+		return decrypted;
 	}			
 	
 	public static byte[] sha1_hash(byte[] input_data) {
@@ -184,16 +183,9 @@ public class CryptoUtilities {
 		return sha_hash.equals(hash);
 	}
 
-	public static void encryptAndSend(byte[] bytes, SecretKeySpec key, DataOutputStream out) {
+	public static void encryptAndSend(byte[] bytes, SecretKeySpec key, DataOutputStream out) throws IOException {
 		byte[] encrypted = aes_encrypt(bytes, key);
-		try 
-		{
-			out.write(bytes);
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
+		out.write(bytes);
 	}
 
 	public static byte[] append_hash(byte[] msg, SecretKeySpec key) {
