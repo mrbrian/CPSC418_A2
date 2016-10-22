@@ -13,7 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class CryptoUtilities {
 
-	private static int HASH_LENGTH = 160;
+	private static int HASH_LENGTH = 20;
 	private static KeyGenerator key_gen = null;
 	private static SecretKey sec_key = null;
 	
@@ -26,12 +26,16 @@ public class CryptoUtilities {
 	SecureRandom RNG = null;
 	String decrypted_str = null;	
 
-	public static byte[] receiveAndDecrypt(SecretKeySpec key, DataInputStream in) throws IOException {
-		while (in.available() <= 0)
-		{			
+	public static byte[] receiveAndDecrypt(SecretKeySpec key, DataInputStream in) throws IOException 
+	{	
+		int size = in.readInt();
+		byte[] ciphtext = new byte[size];
+
+		for (int i =0 ; i < size; i++)
+		{
+			ciphtext[i] = in.readByte();
 		}
-		byte[] ciphtext = new byte[in.available()];
-		in.read(ciphtext);
+		
 		byte[] plain_msg_digest = aes_decrypt(ciphtext, key);
 		return plain_msg_digest;
 	}
@@ -183,11 +187,12 @@ public class CryptoUtilities {
 			return false;
 		}
 		
-		return sha_hash.equals(hash);
+		return Arrays.equals(sha_hash, hash);
 	}
 
 	public static void encryptAndSend(byte[] bytes, SecretKeySpec key, DataOutputStream out) throws IOException {
 		byte[] encrypted = aes_encrypt(bytes, key);
+		out.writeInt(encrypted.length);
 		out.write(encrypted);
 	}
 

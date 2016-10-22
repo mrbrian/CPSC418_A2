@@ -148,6 +148,7 @@ public class Client
 	try {
 	    debug("Sending output file name = " + outfilename);
 	    CryptoUtilities.encryptAndSend(outfilename.getBytes(),key,out);
+	    
 	}
 	catch (IOException e) {
 	    System.out.println("Error sending the output file name");
