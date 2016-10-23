@@ -36,6 +36,8 @@ Total & \\ \hline
 \begin{answer}
 \\
 1.a)\\
+<<<<<<< HEAD
+<<<<<<< HEAD
 $H(M|C)=\sum_{c\in C}p(C)\sum_{m\in M}p(M|C)log_2(\frac{1}{p(M|C)})$\\
 $H(M|C)=\sum p(C)\sum p(M|C)log_2(\frac{1}{p(M|C)})$\\
 %$=\frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2))$\\
@@ -60,7 +62,35 @@ Since $|C| = |M|$  (as every unique C comes from encrypting some unique M), so w
 p(C) = p(M).\\
 \\
 Thus,\\
+=======
 
+=======
+
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
+$H(M|C)=\sum_{c\in C}p(C)\sum_{m\in M}p(M|C)log_2(\frac{1}{p(M|C)})$\\
+
+$H(M|C)=\sum p(C)\sum p(M|C)log_2(\frac{1}{p(M|C)})$\\
+$=\frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2))$\\
+\\
+1.b)\\
+Since the cryptosystem provides perfect secrecy, $p(x|y)=p(x)$.\\
+$\sum p(M)log_2(\frac{1}{p(M)})$\\
+$=\frac{1}{|M|}log_2(\frac{1}{p(M)})+\frac{1}{|M|}log_2(\frac{1}{p(M)})+...+\frac{1}{|M|}log_2(\frac{1}{p(M)})$  ($|M|$ total terms)\\
+$=|M|*\frac{1}{|M|}log_2(\frac{1}{p(M)})$ \\
+$=log_2(\frac{1}{p(M)})$ 
+
+$H(M|C)=\sum p(C)\sum p(M|C)log_2(\frac{1}{p(M|C)})$\\
+$=\sum p(C)\sum p(M)log_2(\frac{1}{p(M)})$\\
+$=\sum p(C)log_2(\frac{1}{p(M)})$\\
+
+$p(C)=\frac{p(C|M)p(M)}{p(M|C)}$\\
+$p(C)=\frac{p(C|M)p(M)}{p(M)}$\\
+$p(C)=p(C|M)$\\
+...\\
+<<<<<<< HEAD
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
+=======
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
 $=\sum p(M)log_2(\frac{1}{p(M)})$\\
 $=H(M)$\\
 \\
@@ -95,6 +125,8 @@ $x^3+x^2+x=x(x^2+x+1)$\\
 $x^3+x^2+x+1=(x+1)(x^2+1)$\\
 \\
 2.a.iii)\\
+<<<<<<< HEAD
+<<<<<<< HEAD
 Let $A(x)$ be a degree 3 polynomial.  If $A(x)$ is reducible, then it must the product of a degree 1 polynomial and some other polynomial(s) (of degree 2 or 1).  In either case, there is a polynomial of degree 1 as a factor.  The two possible polynomials of degree 1 are $P_1=x+1$ and $P_2=x$.  If A is reducible, then either $P_1$ or $P_2$ is a factor of A.  Notice $P_1$ and $P_2$ are respectively equal to zero when $x=-1$ or $x=0$.  If $A(x)$ is reducible with $P_1$ as a factor, then $A(-1)=0$.  If $A(x)$ is reducible with $P_2$ as a factor, then $A(0)=0$.  Otherwise $A(x)$ is irreducible.\\
 \\
 Let $A_1(x)=x^3+x+1$, then \\
@@ -109,6 +141,10 @@ Neither $A_1(x)$ or $A_2(x)$ have $P_1$ or $P_2$ as factors, and are therefore i
 Since $x^4+x+1\equiv 0  \pmod{x^4+x+1}$\\
 $x^4\equiv 1+x  \pmod{x^4+x+1}$\\
 $x^5\equiv x+x^2  \pmod{x^4+x+1}$\\
+=======
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
+=======
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
 
 $f(x)g(x)=(x^2+1)(x^3+x^2+1)$\\
 $=x^5+x^3+x^4+x^2+x^2+1$\\
@@ -128,6 +164,8 @@ d)\\
 \pbitem Arithmetic with the constant polynomial of MixColumns in AES
 \begin{problem}
 \begin{answer}
+<<<<<<< HEAD
+<<<<<<< HEAD
 \\
 3.a)\\
 $c(1)=1$\\
@@ -165,6 +203,16 @@ $d_3=b_2\oplus b_3 \oplus b_7$\\
 $d_2=b_1\oplus b_2$\\
 $d_1=b_0\oplus b_1 \oplus b_7$\\
 $d_0=b_0 \oplus b_7$\\
+=======
+1.a)\\
+Show 1A= A1
+and 0A = A0
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
+=======
+1.a)\\
+Show 1A= A1
+and 0A = A0
+>>>>>>> 2da998060b35c6d8e2cb4ecca8a45c50dba9adc1
 
 c.i)\\
 $y^4\equiv 1 \pmod {y^4+1}$\\
