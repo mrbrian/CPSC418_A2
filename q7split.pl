@@ -1,4 +1,4 @@
-#Splits the q7 plaintext into 6 substrings (described written portion)
+#Splits the q7 plaintext into 5 substrings (described written portion)
 #usage: perl q7split.pl
 
 my $str = "MNPBP NAWGB XJIWU IWZZF GJIWR ILYYO EJPOE YTTVO CJFAE RJYXX 

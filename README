@@ -1,0 +1,27 @@
+CPSC418 Assignment 2 Problem 6
+Brian Yee
+00993104
+
+Files Submitted:
+----------------
+  Client.java - 
+  Sever.java - 
+  ServerThread.java -
+  CryptoUtilities.java -
+
+To Build:
+---------
+  javac *.java
+
+To Run:
+-------
+  java Server [port]
+    - outputs the encrypted file: "secured.out"
+
+  java Client [server address] [port]
+    - typically the inputfile should be the "secured.out" output file from secureFile
+    - outputs the decrypted file: "decrypted.out"
+
+Working in full.  No known bugs.
+
+

@@ -24,171 +24,59 @@ QYTGY CSTWG YYJPD VATOF SHIHE ANPBR AAZKW XSIVM IVPYW ZXCGK
 BNOHE GNOYS XSWWV PORVS QJIWU WXAKV ZCEGY ZWPHW XANHD GJPGK 
 MNPBV WHIHV NBFAI NSPXV";
 
-my $hash0 = {
-'W' => 'E',
-'A' => 'T',
-'X' => 'O',
-'Y' => 'A',
-'M' => 'N',
-'G' => 'I',
-'P' => 'R',
-'O' => 'S',
-'Q' => 'H',
-'F' => 'D',
-'S' => 'L',
-'E' => 'U',
-'V' => 'C',
-'I' => 'M',
-'L' => 'P',
-'C' => 'F',
-'B' => 'Y',
-'K' => 'W',
-'N' => 'G',
-'T' => 'B',
-'R' => 'V',
-'D' => 'K',
-'J' => 'J',
-'Z' => 'X',
-'H' => 'Z',
-'U' => 'Q'};
+my @hash0 = qw(
+ I 
+ A 
+ E 
+ J 
+ X 
+ T 
+ B 
+ M 
+ P 
+ H 
+ L 
+ D 
+ Z 
+ W 
+ Q 
+ K 
+ U 
+ Y 
+ N 
+ G 
+ S 
+ R 
+ V 
+ F 
+ O 
+ C 
+);
 
-my $hash1 = {
-'W' => 'E',
-'G' => 'T',
-'X' => 'O',
-'N' => 'A',
-'Y' => 'N',
-'M' => 'I',
-'Z' => 'R',
-'A' => 'S',
-'E' => 'H',
-'P' => 'D',
-'D' => 'L',
-'O' => 'U',
-'S' => 'C',
-'Q' => 'M',
-'R' => 'P',
-'H' => 'F',
-'V' => 'Y',
-'I' => 'W',
-'F' => 'G',
-'J' => 'B',
-'L' => 'V',
-'B' => 'K',
-'C' => 'J',
-'T' => 'X',
-'K' => 'Z'};
-
-my $hash2 = {
-'X' => 'E',
-'G' => 'T',
-'Q' => 'O',
-'I' => 'A',
-'W' => 'N',
-'P' => 'I',
-'Y' => 'R',
-'N' => 'S',
-'M' => 'H',
-'J' => 'D',
-'D' => 'L',
-'S' => 'U',
-'E' => 'C',
-'Z' => 'M',
-'K' => 'P',
-'T' => 'F',
-'O' => 'Y',
-'V' => 'W',
-'B' => 'G',
-'A' => 'B',
-'R' => 'V',
-'L' => 'K',
-'H' => 'J',
-'F' => 'X',
-'C' => 'Z',
-'U' => 'Q'};
-
-my $hash3 = {
-'Y' => 'E',
-'I' => 'T',
-'B' => 'O',
-'A' => 'A',
-'Q' => 'N',
-'N' => 'I',
-'T' => 'R',
-'D' => 'S',
-'G' => 'H',
-'R' => 'D',
-'Z' => 'L',
-'V' => 'U',
-'E' => 'C',
-'K' => 'M',
-'H' => 'P',
-'J' => 'F',
-'P' => 'Y',
-'W' => 'W',
-'M' => 'G',
-'F' => 'B',
-'X' => 'V',
-'C' => 'K',
-'S' => 'J',
-'O' => 'X',
-'L' => 'Z'};
-
-my $hash4 = {
-'Z' => 'E',
-'Y' => 'T',
-'G' => 'O',
-'W' => 'A',
-'S' => 'N',
-'D' => 'I',
-'N' => 'R',
-'X' => 'S',
-'P' => 'H',
-'T' => 'D',
-'E' => 'L',
-'V' => 'U',
-'M' => 'C',
-'C' => 'M',
-'R' => 'P',
-'Q' => 'F',
-'A' => 'Y',
-'J' => 'W',
-'H' => 'G',
-'O' => 'B',
-'F' => 'V',
-'I' => 'K',
-'B' => 'J',
-'K' => 'X',
-'U' => 'Z'};
-
-my $shift0=0;
-my $shift1=11;
-my $shift2=20;
+my $shift0=17;
+my $shift1=17;
+my $shift2=0;
 my $shift3=13;
-my $shift4=12;
+my $shift4=17;
 
 my $count = 0;
 $str =~ s/ //g;
 $str =~ s/\n//g;
 
-for my $chr (split //, $str) {
-    print "$hash0->{$chr}" if ($count % 5 == 0);
-    print "$hash1->{$chr}" if ($count % 5 == 1);
-    print "$hash2->{$chr}" if ($count % 5 == 2);
-    print "$hash3->{$chr}" if ($count % 5 == 3);
-    print "$hash4->{$chr} " if ($count % 5 == 4);
-    $count += 1;
-  }
-  print \n;
-=item
 
 for my $chr (split //, $str) {
-    print chr((ord($chr)-65+$shift0)%26+65) if ($count % 5 == 0);
-    print chr((ord($chr)-65+$shift1)%26+65) if ($count % 5 == 1);
-    print chr((ord($chr)-65+$shift2)%26+65) if ($count % 5 == 2);
-    print chr((ord($chr)-65+$shift3)%26+65) if ($count % 5 == 3);
-    print chr((ord($chr)-65+$shift4)%26+65) if ($count % 5 == 4);
+    my $chr_val = ord($chr)-ord('A');
+    $chr_val = ord($chr)-ord('A')+$shift0 if ($count % 5 == 0);
+    $chr_val = ord($chr)-ord('A')+$shift1 if ($count % 5 == 1);
+    $chr_val = ord($chr)-ord('A')+$shift2 if ($count % 5 == 2);
+    $chr_val = ord($chr)-ord('A')+$shift3 if ($count % 5 == 3);
+    $chr_val = ord($chr)-ord('A')+$shift4 if ($count % 5 == 4);
+	
+    $chr_val -= 26 if ($chr_val >= 26);
+    $chr_val -= 26 if ($chr_val >= 26);
+	
+    print "$hash0[$chr_val]";
+    print " " if ($count % 5 == 0 && $count > 0);
     $count += 1;
   }
-  print \n;
-=cut
+  print "\n";
