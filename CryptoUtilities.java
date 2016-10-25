@@ -1,216 +1,214 @@
-
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
 import java.security.*;
-
 import javax.crypto.*;
 import javax.crypto.spec.*;
-import java.security.interfaces.*;
-import java.security.SecureRandom;
-import java.math.*;
-import java.io.DataInputStream;
-import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * This class contains various utility functions for working with AES encryption
+ * and decryption, and for working with HMAC-SHA1 message digests.
+ *
+ * @author Mike Jacobson
+ * @version 1.0, September 25, 2013
+ */
 public class CryptoUtilities {
 
-	private static int HASH_LENGTH = 20;
-	private static KeyGenerator key_gen = null;
-	private static SecretKey sec_key = null;
-	
-	FileInputStream in_file = null;
-	FileOutputStream out_file = null;
-    byte[] sha_hash = null;
-	byte[] hmac_hash = null;
-    byte[] seed = null;
-	byte[] aes_ciphertext = null;
-	SecureRandom RNG = null;
-	String decrypted_str = null;	
+    // AES key length to be used (in bytes)
+    public static final int AES_KEY_LEN = 16;
 
-	public static byte[] receiveAndDecrypt(SecretKeySpec key, DataInputStream in) throws IOException 
-	{	
-		int size = in.readInt();
-		byte[] ciphtext = new byte[size];
+    // HMAC-SHA1 digest length (in bytes)
+    public static final int HMAC_SHA1_LEN = 20;
 
-		for (int i =0 ; i < size; i++)
-		{
-			ciphtext[i] = in.readByte();
-		}
-		
-		byte[] plain_msg_digest = aes_decrypt(ciphtext, key);
-		return plain_msg_digest;
-	}
-	
-	public static byte[] aes_decrypt(byte[] data_in, SecretKeySpec sec_key_spec) {
-		byte[] decrypted = null;
-		String dec_str = null;
-		try{
-			//set cipher to decrypt mode
-			Cipher sec_cipher = Cipher.getInstance("AES");
-			sec_cipher.init(Cipher.DECRYPT_MODE, sec_key_spec);
+    // AES/CBC/PKCS5Padding parameter length
+    public static final int AES_PARAM_LEN = 18;
 
-			//do decryption
-			decrypted = sec_cipher.doFinal(data_in);
-		}
-		catch(Exception e){
-			System.out.println(e);
-		}
-		return decrypted;
-	}			
-	
-	public static byte[] sha1_hash(byte[] input_data) {
-		byte[] hashval = null;
-		try{
-			//create message digest object
-			MessageDigest sha1 = MessageDigest.getInstance("SHA1");
-			
-			//make message digest
-			hashval = sha1.digest(input_data);
-		}
-		catch(NoSuchAlgorithmException nsae){
-			System.out.println(nsae);
-		}
-		return hashval;
-	}
 
-	public static byte[] hmac_sha1(byte[] in_data) {
-		byte[] result = null;
-
-		try{
-			//generate the HMAC key		
-			KeyGenerator theKey = KeyGenerator.getInstance("HMACSHA1");
-			SecretKey secretKey = theKey.generateKey();
-
-			Mac theMac = Mac.getInstance("HMACSHA1");
-			theMac.init(secretKey);
-
-			//create the hash
-			result = theMac.doFinal(in_data);
-		}
-		catch(Exception e){
-			System.out.println(e);
-		}
-		return result;
-	}
-	
-	public static byte[] aes_encrypt(byte[] data_in, SecretKeySpec sec_key_spec) {
-		byte[] out_bytes = null;
-		try{
-			//set cipher object to encrypt mode
-			Cipher sec_cipher = Cipher.getInstance("AES");
-			sec_cipher.init(Cipher.ENCRYPT_MODE, sec_key_spec);
-
-			//create ciphertext
-			out_bytes = sec_cipher.doFinal(data_in);
-		}
-		catch(Exception e){
-			System.out.println(e);
-		}
-		return out_bytes;
-	}
-	
-    /*
-     * Converts a byte array to hex string
-     * this code from http://java.sun.com/j2se/1.4.2/docs/guide/security/jce/JCERefGuide.html#HmacEx
+    /**
+     * Constructs a AES_KEY_LEN byte AES key from a given seed
+     *
+     * @param seed (array of bytes)
+     * @return the resulting AES key
      */
-    public static String toHexString(byte[] block) {
-        StringBuffer buf = new StringBuffer();
+    public static SecretKeySpec key_from_seed(byte[] seed) {
+	// compute SHA-1 hash of the seed
+	byte[] hashval = null;
+	try {
+	    MessageDigest sha1 = MessageDigest.getInstance("SHA1");
+	    hashval = sha1.digest(seed);
+	}
+	catch (Exception e) {
+	    e.printStackTrace();
+	}
 
-        int len = block.length;
+	// extract 1st AES_KEY_LEN bytes for the key material
+	byte[] key = new byte[AES_KEY_LEN];
+	System.arraycopy(hashval, 0, key, 0, AES_KEY_LEN);
 
-        for (int i = 0; i < len; i++) {
-             byte2hex(block[i], buf);
-             if (i < len-1) {
-                 buf.append(":");
-             }
-        } 
-        return buf.toString();
-    }
-    /*
-     * Converts a byte to hex digit and writes to the supplied buffer
-     * this code from http://java.sun.com/j2se/1.4.2/docs/guide/security/jce/JCERefGuide.html#HmacEx
-     */
-    public static void byte2hex(byte b, StringBuffer buf) {
-        char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-                            '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-        int high = ((b & 0xf0) >> 4);
-        int low = (b & 0x0f);
-        buf.append(hexChars[high]);
-        buf.append(hexChars[low]);
+	// initialize the key
+	SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+	return keySpec;
     }
 
-	public static SecretKeySpec key_from_seed(byte[] bytes) {
-		byte[] raw = null;
-		try 
-		{
-			//generate 128-bit key using seed
-			KeyGenerator key_gen;
-			key_gen = KeyGenerator.getInstance("AES");
-			SecureRandom RNG = SecureRandom.getInstance("SHA1PRNG");
-			RNG.setSeed(bytes);
-			key_gen.init(128, RNG);
-			sec_key = key_gen.generateKey();
-	
-			//get key material in raw form
-			raw = sec_key.getEncoded();
-		} 
-		catch (NoSuchAlgorithmException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
-		return new SecretKeySpec(raw, "AES");
-	}
 
-	public static byte[] extract_message(byte[] hashed_plaintext) {
-		byte[] result = new byte[hashed_plaintext.length - HASH_LENGTH];
+
+    /**
+     * Computes a HMAC-SHA1 message digest of a given message, appends it to the 
+     * message, returns the output.
+     *
+     * @param message  the message (in bytes)
+     * @param keySpec  the secret key for HMAC-SHA1
+     * @return message concatenated with the HMAC-SHA1 digest
+     */
+    public static byte[] append_hash(byte[] message, SecretKeySpec keySpec)
+    {
+	byte[] ret = null;
 		
-		System.arraycopy(hashed_plaintext,0,result,0, result.length);
-		return result;
-	}
-
-	public static boolean verify_hash(byte[] hashed_plaintext, SecretKeySpec key) {
-		byte[] msg = new byte[hashed_plaintext.length - HASH_LENGTH];
-		byte[] hash = new byte[HASH_LENGTH];
-		byte[] sha_hash;
-
-		try 
-		{
-			System.arraycopy(hashed_plaintext, 0, msg, 0, msg.length);
-			System.arraycopy(hashed_plaintext, msg.length, hash, 0, hash.length);
+	try {
+	    // Initialize the MAC with the given key
+	    Mac mac = Mac.getInstance("HmacSHA1");
+	    mac.init(keySpec);
 			
-			sha_hash = sha1_hash(msg);
-		} 
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
+	    // Compute the MAC
+	    byte[] m = mac.doFinal(message);
+			
+	    // Append the MAC to the message
+	    ret = new byte[message.length+m.length];
+	    System.arraycopy(message, 0, ret, 0, message.length);
+	    System.arraycopy(m, 0, ret, message.length, m.length);
+			
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
 		
-		return Arrays.equals(sha_hash, hash);
-	}
+	return ret;
+    }
+	
 
-	public static void encryptAndSend(byte[] bytes, SecretKeySpec key, DataOutputStream out) throws IOException {
-		byte[] encrypted = aes_encrypt(bytes, key);
-		out.writeInt(encrypted.length);
-		out.write(encrypted);
-	}
+    /**
+     * Extracts a message from a message/digest pair.
+     *
+     * @param hash_message  the message and digest (in bytes)
+     * @return message concatenated with the HMAC-SHA1 digest
+     */
+    public static byte[] extract_message(byte[] hash_message)
+    {
+	byte[] plaintext = new byte[hash_message.length - HMAC_SHA1_LEN];
+	System.arraycopy(hash_message, 0, plaintext, 0, plaintext.length);
 
-	public static byte[] append_hash(byte[] msg, SecretKeySpec key) {
-		byte[] result = new byte[msg.length + HASH_LENGTH];        
-		byte[] sha_hash;
+	return plaintext;
+    }
+
+
+
+    /**
+     * Extracts a HMAC-SHA1 message digest form the end of the given message and
+     * deterimines whether it is valid.
+     *
+     * @param messageHash  the message including digest (in bytes)
+     * @param keySpec  the secret key for HMAC-SHA1
+     * @return true if the extracted digest matches the computed digest
+     */
+    public static boolean verify_hash(byte[] messageHash, SecretKeySpec keySpec)
+    {
+	boolean ret = false;
 		
-		try 
-		{
-			sha_hash = sha1_hash(msg);
-			System.arraycopy(msg,0,result,0, msg.length);
-			System.arraycopy(sha_hash,0,result, msg.length, sha_hash.length);
-		} 
-		catch (Exception e) 
-		{
-			e.printStackTrace();
-			return null;
-		}		
-		return result;
+	try {
+	    // Split the array into the message and the digest
+	    byte[] message = new byte[messageHash.length - HMAC_SHA1_LEN];
+	    byte[] hash = new byte[HMAC_SHA1_LEN];
+			
+	    System.arraycopy(messageHash, 0, message, 0, message.length);
+	    System.arraycopy(messageHash, message.length, hash, 0, hash.length);
+			
+	    // Initialize the MAC with the given key
+	    Mac mac = Mac.getInstance("HmacSHA1");
+	    mac.init(keySpec);
+			
+	    // Get the MAC of the message
+	    byte[] m = mac.doFinal(message);
+			
+	    // compare the the MAC sent and the one calculated
+	    ret = Arrays.equals(m, hash);
+			
+	} catch (Exception e) {
+	    // if there is an error, we know that hash can't be correct
+	    ret = false;
 	}
+		
+	return ret;
+    }
+
+	
+
+    /**
+     * Encrypts the given message using the given key with AES-CBC.
+     *
+     * @param message  the message (in bytes)
+     * @param keySpec  the secret key
+     * @return encrypted message (with algorithm parameters appended
+     */
+    public static byte[] encrypt(byte[] message, SecretKeySpec keySpec)
+    {
+	byte[] ret = null;
+		
+	try {
+	    // Initialize the cipher with the given key
+	    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+	    cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+			
+	    // encrypt the message
+	    byte[] cipherText = cipher.doFinal(message);
+	    byte[] params = cipher.getParameters().getEncoded();
+			
+	    // Combine the ciphertext and cipher parameters into one byte array
+	    ret = new byte[cipherText.length+params.length];
+	    System.arraycopy(cipherText, 0, ret, 0, cipherText.length); 
+	    System.arraycopy(params, 0, ret, cipherText.length, params.length);
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+		
+	return ret;
+    }
+
+
+
+	
+    /**
+     * Decrypts the given message using the given key with AES-CBC.
+     *
+     * @param decrypt  the message (in bytes)
+     * @param keySpec  the secret key
+     * @return decrypted message
+     */
+    public static byte[] decrypt(byte[] decrypt, SecretKeySpec keySpec)
+    {
+	byte[] message = null;
+		
+	try {
+	    // Extract the cipher parameters from the end of the input array
+	    byte[] cipherText = new byte[decrypt.length - AES_PARAM_LEN];
+	    byte[] paramsEnc = new byte[AES_PARAM_LEN];
+			
+	    System.arraycopy(decrypt, 0, cipherText, 0, cipherText.length);
+	    System.arraycopy(decrypt, cipherText.length, paramsEnc, 0, paramsEnc.length);
+
+	    // Initialize the parameters
+	    AlgorithmParameters params = AlgorithmParameters.getInstance("AES");
+	    params.init(paramsEnc);
+	        
+	    // Initialize the cipher for decryption
+	    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+	    cipher.init(Cipher.DECRYPT_MODE, keySpec, params);
+			
+	    // Decrypt the ciphertext
+	    message = cipher.doFinal(cipherText);
+
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+		
+	return message;
+    }
+
 }

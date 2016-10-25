@@ -1,52 +1,50 @@
 import java.io.*;
 import java.net.*;
-import java.security.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
 
 /**
- * This class is a secure file transfer client.  Connects to the server and sends a
- * file across.
- *
- * @author Mike Jacobson
- * @version 1.0, October 23, 2013
+ * Client program.  Connects to the server and sends text accross.
  */
+
 public class Client 
 {
-    private boolean debug;
-    private Socket sock;         //Socket to communicate with
-    private BufferedReader stdIn;   // for user input
-    private DataOutputStream out;
-    private DataInputStream in;
-    private SecretKeySpec key;   // AES encryption key
-
-
+    private Socket sock;  //Socket to communicate with.
+	
     /**
-     * Utility for printing protocol messages
-     * @param s protocol message to be printed
+     * Main method, starts the client.
+     * @param args args[0] needs to be a hostname, args[1] a port number.
      */
-    private void debug(String s) {
-	if(debug) 
-	    System.out.println("Debug Client: " + s);
+    public static void main (String [] args)
+    {
+	if (args.length != 2) {
+	    System.out.println ("Usage: java Client hostname port#");
+	    System.out.println ("hostname is a string identifying your server");
+	    System.out.println ("port is a positive integer identifying the port to connect to the server");
+	    return;
+	}
+
+	try {
+	    Client c = new Client (args[0], Integer.parseInt(args[1]));
+	}
+	catch (NumberFormatException e) {
+	    System.out.println ("Usage: java Client hostname port#");
+	    System.out.println ("Second argument was not a port number");
+	    return;
+	}
     }
-
-
-
-
+	
     /**
      * Constructor, in this case does everything.
      * @param ipaddress The hostname to connect to.
      * @param port The port to connect to.
      */
-    public Client (String ipaddress, int port, boolean setDebug)
+    public Client (String ipaddress, int port)
     {
-	// set the debug flag
-	debug = setDebug;
-
-	// open reader for uses input
-	stdIn = new BufferedReader(new InputStreamReader(System.in));
-
-	// Try to connect to the specified host on the specified port.
+	/* Allows us to get input from the keyboard. */
+	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+	String userinput;
+	PrintWriter out;
+		
+	/* Try to connect to the specified host on the specified port. */
 	try {
 	    sock = new Socket (InetAddress.getByName(ipaddress), port);
 	}
@@ -60,254 +58,46 @@ public class Client
 	    return;
 	}
 		
-	// Status info
+	/* Status info */
 	System.out.println ("Connected to " + sock.getInetAddress().getHostAddress() + " on port " + port);
-
-
-
- 	// open input and output streams for file transfer
-	in = null;
-	out = null;
+		
 	try {
-	    in = new DataInputStream(sock.getInputStream());
-	    out = new DataOutputStream(sock.getOutputStream());
-	}
-	catch (UnknownHostException e) {
-	    System.out.println ("Unknown host error.");
-	    close();
+	    out = new PrintWriter(sock.getOutputStream());
 	}
 	catch (IOException e) {
 	    System.out.println ("Could not create output stream.");
-	    close();
-	}
-    }
-
-
-
-
-    /**
-     * Prompts user for a sting to be used as seed for deriving the AES key
-     */
-    public void getKey() {
-	debug("Getting key (seed) from user");
-
-	// get input string from user to serve as the seed
-	String seed;
-	try {
-	    System.out.print("Please enter seed for key derivation: ");
-	    seed = stdIn.readLine();
-	}
-	catch (IOException e) {
-	    System.out.println("Error getting seed from user.");
 	    return;
 	}
-
-	// compute key:  1st 16 bytes of SHA-1 hash of seed
-	key = CryptoUtilities.key_from_seed(seed.getBytes());
- 	debug("Using key = " + CryptoUtilities.toHexString(key.getEncoded()));
-    }
-
-
-
-
-    /**
-     * Encrypted file transfer
-     * @return true if file transfer was successful
-     */
-    public boolean sendFile() {
-	debug("Starting File Transfer");
-
-	// get input file name
-	String infilename;
-	FileInputStream infile;
-	try {
-	    System.out.print("Please enter the source filename: ");
-	    infilename = stdIn.readLine();
-	    infile = new FileInputStream(infilename);
-	}
-	catch (IOException e) {
-	    System.out.println ("Could not open source file");
-	    close();
-	    return false;
-	}
-
-
-	// get output file name
-	String outfilename;
-	try {
-	    System.out.print("Please enter the destination filename: ");
-	    outfilename = stdIn.readLine();
-	}
-	catch (IOException e) {
-	    System.out.println("Error getting destination filename.");
-	    close();
-	    return false;
-	}
-
-	// send the output file name
-	try {
-	    debug("Sending output file name = " + outfilename);
-	    CryptoUtilities.encryptAndSend(outfilename.getBytes(),key,out);
-	    
-	}
-	catch (IOException e) {
-	    System.out.println("Error sending the output file name");
-	    close();
-	    return false;
-	}
-
-
-	// send the file size
-	try {
-	    debug("Sending file size = " + infile.available());
-	    CryptoUtilities.encryptAndSend(String.valueOf(infile.available()).getBytes(), key,out);	
-	}
-	catch (IOException e) {
-	    System.out.println("Error sending the file length");
-	    close();
-	    return false;
-
-	}
-
-
-	// append message digest, encrypt, send file
-	try {
-	    debug("Encrypting and sending file with MAC appended");
-	    // read input file into a byte array
-	    byte[] msg = new byte[infile.available()];
-	    int read_bytes = infile.read(msg);
-
-	    // append HMAC-SHA-1 message digest
-	    byte[] hashed_msg = CryptoUtilities.append_hash(msg,key);
-
-	    // encrypt anad send
-	    CryptoUtilities.encryptAndSend(hashed_msg,key,out);
-	}
-	catch (IOException e) {
-	    System.out.println("Error sending encrypted file");
-	    close();
-	    return false;
-	}
-
-
-
-	// get acknowledgement from server
-	boolean transferOK = false;
-	try {
-	    debug("Waiting for server acknowledgement");
-	    String ack = new String(CryptoUtilities.receiveAndDecrypt(key,in));
-
-	    debug("Got acknowledgement = " + ack);
-	    if (ack.compareTo("Passed") == 0) {
-			System.out.println("File received and verified");
-			transferOK = true;
-	    }
-	    else {
-	    	System.out.println("Error verifying file");
-	    }
-	}
-	catch (IOException e) {
-	    System.out.println("Error getting server acknowledgement");
-	    close();
-	    return transferOK;
-	}
-
-	return transferOK;
-    }
-
-
-
-
-    /**
-     * Shuts down the socket connection
-     */
-    public void close() {
-	// shutdown socket and input reader
-	System.out.println("Shutting down client.");
-	try {
-	    stdIn.close();
-	    sock.close();
-	    if (in != null)
-		in.close();
-	    if (out != null)
-		out.close();
-	} 
-	catch (IOException e) {
-	    return;
-	}	
 		
-    }
-
-
-
-    /**
-     * Outputs usage instructions
-     */
-    public static void printUsage() {
-	System.out.println ("Usage: java Client hostname port#");
-	System.out.println("     or java Client debug hostname port#");
-	System.out.println (" - hostname is a string identifying your server");
-	System.out.println (" - port is a positive integer identifying the port to connect to the server");
-    }
-
-
-
-
-    /**
-     * Main method, starts the client.
-     * @param args args[0] needs to be a hostname, args[1] a port number.
-     */
-    public static void main (String [] args)
-    {
-	boolean setDebug = false;
-
-	if (args.length < 2 || args.length > 3) {
-	    printUsage();
-	    return;
-	}
-
-	// check if debug flag is being set
-	String ipaddress;
-	int port;
-	if (args.length == 3) {
-	    if (args[2].compareTo("debug") == 0) {
-		setDebug = true;
-		ipaddress = args[0];
-		port = Integer.parseInt(args[1]);
-	    }
-	    else {
-		printUsage();
-		return;
-	    }
-	}
-	else {
-	    ipaddress = args[0];
-	    port = Integer.parseInt(args[1]);
-	}
-
-
-	// initialize client and socket connections
-	Client c;
+	/* Wait for the user to type stuff. */
 	try {
-	    c = new Client (ipaddress, port, setDebug);
-	}
-	catch (NumberFormatException e) {
-	    printUsage();
-	    System.out.println ("ERROR:  second argument was not a port number");
+	    while ((userinput = stdIn.readLine()) != null) {
+		/* Echo it to the screen. */
+		out.println(userinput);
+			    
+		/* Tricky bit.  Since Java does short circuiting of logical 
+		 * expressions, we need to checkerror to be first so it is always 
+		 * executes.  Check error flushes the outputstream, which we need
+		 * to do every time after the user types something, otherwise, 
+		 * Java will wait for the send buffer to fill up before actually 
+		 * sending anything.  See PrintWriter.flush().  If checkerror
+		 * has reported an error, that means the last packet was not 
+		 * delivered and the server has disconnected, probably because 
+		 * another client has told it to shutdown.  Then we check to see
+		 * if the user has exitted or asked the server to shutdown.  In 
+		 * any of these cases we close our streams and exit.
+		 */
+		if ((out.checkError()) || (userinput.compareTo("exit") == 0) || (userinput.compareTo("die") == 0)) {
+		    System.out.println ("Client exiting.");
+		    stdIn.close ();
+		    out.close ();
+		    sock.close();
+		    return;
+		}
+	    }
+	} catch (IOException e) {
+	    System.out.println ("Could not read from input.");
 	    return;
-	}
-
-
-	// get the encryption key
-	c.getKey();
-
-
-	// do file transfer
-	c.sendFile();
-
-
-	// shut down the client
-	c.close();
+	}		
     }
-	
 }

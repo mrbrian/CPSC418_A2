@@ -3,12 +3,11 @@ import java.net.*;
 import java.util.Vector;
 
 /**
- * This class is a secure file transfer server. Opens a server socket and 
- * listens for clients.  When one connects a thread is spawned to deal with the client. 
- *
- * @author Mike Jacobson
- * @version 1.0, October 23, 2013
+ * Server application for Java socket programming with multithreading.
+ * Opens a server socket and listens for clients.  When one connects
+ * a thread is spawned to deal with the client.
  */
+
 public class Server
 {
     private ServerSocket serversock;
@@ -16,21 +15,40 @@ public class Server
     private boolean shutdown;  //allows clients to shutdown the server
     private int clientcounter;  //id numbers for the clients
 
-    private boolean debug = false;
+    /**
+     * Main method
+     * @param args First argument should be the port to listen on.
+     */
+    public static void main (String [] args)
+    {
+	if (args.length != 1) {
+	    System.out.println ("Usage: java Server port#");
+	    return;
+	}
 
-
-
+	try {
+	    Server s = new Server (Integer.parseInt(args[0]));
+	}
+	catch (ArrayIndexOutOfBoundsException e) {
+	    System.out.println ("Usage: java Server port#");
+	    System.out.println ("Second argument is not a port number.");
+	    return;
+	}
+	catch (NumberFormatException e) {
+	    System.out.println ("Usage: java Server port#");
+	    System.out.println ("Second argument is not a port number.");
+	    return;
+	}
+    }
+	
     /**
      * Constructor, makes a new server listening on specified port.
      * @param port The port to listen on.
      */
-    public Server (int port, boolean setDebug)
+    public Server (int port)
     {
-	debug = setDebug;
 	clientcounter = 0;
 	shutdown = false;
-
-	// start server socket
 	try {
 	    serversock = new ServerSocket (port);
 	}
@@ -38,25 +56,17 @@ public class Server
 	    System.out.println ("Could not create server socket.");
 	    return;
 	}
-
-	// Server socket open, make a vector to store active threads
+	/* Server socket open, make a vector to store active threads. */
 	serverthreads = new Vector <ServerThread> (0,1);
 		
-	// Output connection info for the server
+	/* Output connection info for the server */
 	System.out.println ("Server IP address: " + serversock.getInetAddress().getHostAddress() + ",  port " + port);
+
+	/* listen on the socket for connections. */
+	listen ();
     }
-
-
 	
-     /**
-     * accessor for debug
-     */
-    public boolean getDebug() {
-	return debug;
-    }
-
-
-   /**
+    /**
      * Allows threads to check and see if the server is shutting down.
      * @return True if the server has been told to shutdown.
      */
@@ -65,8 +75,6 @@ public class Server
 	return shutdown;
     }
 	
-
-
     /**
      * Called by a thread who's client has asked to exit.  Gets rid of the thread.
      * @param st The ServerThread to remove from the vector of active connections.
@@ -113,7 +121,7 @@ public class Server
     /**
      * Waits for incoming connections and spins off threads to deal with them.
      */
-    public void listen ()
+    private void listen ()
     {
 	Socket client = new Socket ();
 	ServerThread st;
@@ -138,68 +146,4 @@ public class Server
 	    }
 	}
     }
-
-
-
-    /**
-     * Outputs usage instructions
-     */
-    public static void printUsage() {
-	System.out.println ("Usage: java Server port#");
-	System.out.println("     or java Server debug port#");
-	System.out.println (" - port is a positive integer identifying the port to connect to the server");
-    }
-
-
-
-
-
-    /**
-     * Main method
-     * @param args First argument should be the port to listen on.
-     */
-    public static void main (String [] args)
-    {
-	boolean setDebug = false;
-
-	if (args.length < 1 || args.length > 2) {
-	    printUsage();
-	    return;
-	}
-
-	// check if debug flag is being set
-	int port;
-	if (args.length == 2) {
-	    if (args[1].compareTo("debug") == 0) {
-		setDebug = true;
-		port = Integer.parseInt(args[0]);
-	    }
-	    else {
-		printUsage();
-		return;
-	    }
-	}
-	else {
-	    port = Integer.parseInt(args[0]);
-	}
-
-
-
-	// initialize server and socket connection
-	Server s;
-	try {
-	    s = new Server (port,setDebug);
-	}
-	catch (NumberFormatException e) {
-	    printUsage();
-	    System.out.println ("Error:  argument is not a port number.");
-	    return;
-	}
-
-
-	// server listens to socket connections until told to shut down
-	s.listen();
-    }
-	
-
 }
