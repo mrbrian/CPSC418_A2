@@ -24,4 +24,7 @@ To Run:
 
 Working in full.  No known bugs.
 
-
+Protocol:
+	int msg_length, byte[] message
+	each message is encrypted
+	the key is not transmitted online.

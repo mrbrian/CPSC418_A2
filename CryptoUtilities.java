@@ -138,8 +138,28 @@ public class CryptoUtilities {
 	return ret;
     }
 
-	
+    public static void byte2hex(byte b, StringBuffer buf) {
+        char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
+                            '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        int high = ((b & 0xf0) >> 4);
+        int low = (b & 0x0f);
+        buf.append(hexChars[high]);
+        buf.append(hexChars[low]);
+    }
+    
+    public static String toHexString(byte[] block) {
+        StringBuffer buf = new StringBuffer();
 
+        int len = block.length;
+
+        for (int i = 0; i < len; i++) {
+             byte2hex(block[i], buf);
+             if (i < len-1) {
+                 buf.append(":");
+             }
+        } 
+        return buf.toString();
+    }
     /**
      * Encrypts the given message using the given key with AES-CBC.
      *
@@ -196,7 +216,7 @@ public class CryptoUtilities {
 	    // Initialize the parameters
 	    AlgorithmParameters params = AlgorithmParameters.getInstance("AES");
 	    params.init(paramsEnc);
-	        
+	    
 	    // Initialize the cipher for decryption
 	    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 	    cipher.init(Cipher.DECRYPT_MODE, keySpec, params);
@@ -210,5 +230,42 @@ public class CryptoUtilities {
 		
 	return message;
     }
+
+	public static void sendEncrypted(byte[] message, SecretKeySpec key, DataOutputStream out_stream) 
+	{
+		byte[] combined = append_hash(message, key);
+		byte[] encrypted = encrypt(combined, key);
+		
+		try 
+		{
+			out_stream.writeInt(encrypted.length);
+			out_stream.write(encrypted);
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public static byte[] receiveEncrypted(SecretKeySpec key, DataInputStream  in_stream) throws Exception 
+	{	
+		while (in_stream.available() <= 0)
+		{ }
+		
+		int filesize = in_stream.readInt();
+		byte[] encrypted = new byte[filesize];
+
+		int bytesRead = 0;
+		while (bytesRead < filesize) {
+			bytesRead += in_stream.read(encrypted, bytesRead, filesize - bytesRead);
+		}		
+		
+		byte[] combined = decrypt(encrypted, key);
+		if (!verify_hash(combined, key))
+			throw new Exception("Message failed hash verification.");
+
+		byte[] message = extract_message(combined);
+		return message;
+	}
 
 }

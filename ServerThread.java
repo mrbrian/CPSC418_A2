@@ -1,6 +1,8 @@
 import java.net.*;
 import java.io.*;
 
+import javax.crypto.spec.SecretKeySpec;
+
 /**
  * Thread to deal with clients who connect to Server.  Put what you want the
  * thread to do in it's run() method.
@@ -8,21 +10,32 @@ import java.io.*;
 
 public class ServerThread extends Thread
 {
+	private boolean debug;
     private Socket sock;  //The socket it communicates with the client on.
     private Server parent;  //Reference to Server object for message passing.
     private int idnum;  //The client's id number.
-	
+    private SecretKeySpec keySpec;
+    
+    public void debug(String s)
+    {
+    	if (debug)
+    		return;
+    	System.out.println("[ServerThread]" + s);
+    }
     /**
      * Constructor, does the usual stuff.
      * @param s Communication Socket.
      * @param p Reference to parent thread.
      * @param id ID Number.
+     * @param key 
      */
-    public ServerThread (Socket s, Server p, int id)
+    public ServerThread (Socket s, Server p, int id, String key)
     {
+    debug = p.getDebug();
 	parent = p;
 	sock = s;
 	idnum = id;
+	keySpec = CryptoUtilities.key_from_seed(key.getBytes());
     }
 	
     /**
@@ -53,11 +66,14 @@ public class ServerThread extends Thread
      */
     public void run ()
     {
-	BufferedReader in = null;
-	String incoming = null;
+	/* Allows us to get input from the keyboard. */
+	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+	DataInputStream in_stream = null;
+	DataOutputStream out_stream = null;
 		
 	try {
-	    in = new BufferedReader (new InputStreamReader (sock.getInputStream()));
+	    in_stream = new DataInputStream (sock.getInputStream());
+	    out_stream = new DataOutputStream (sock.getOutputStream());
 	}
 	catch (UnknownHostException e) {
 	    System.out.println ("Unknown host error.");
@@ -70,68 +86,33 @@ public class ServerThread extends Thread
 		
 	/* Try to read from the socket */
 	try {
-	    incoming = in.readLine ();
+	    byte[] filename = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
+	    debug("Received filename: " + new String(filename));
+
+	    byte[] filesize = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
+	    debug("Received filesize: " + new String(filesize));
+
+	    byte[] data = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
+	    debug("Received data: " + new String(data));
+	    
+	    FileOutputStream out_file = new FileOutputStream(new String(filename));
+	    out_file.write(data);
+	    out_file.close();
+	    
+	    CryptoUtilities.sendEncrypted("Yay".getBytes(), keySpec, out_stream);
+		stdIn.close();
+		sock.close();
+		in_stream.close();
+		out_stream.close();
 	}
-	catch (IOException e) {
+	catch (Exception e) {
 	    if (parent.getFlag())
 		{
 		    System.out.println ("shutting down.");
 		    return;
 		}
 	    return;
-	}
-		
-	/* See if we've recieved something */
-	while (incoming != null)
-	    {
-		/* If the client has sent "exit", instruct the server to
-		 * remove this thread from the vector of active connections.
-		 * Then close the socket and exit.
-		 */
-		if (incoming.compareTo("exit") == 0)
-		    {
-			parent.kill (this);
-			try {
-			    in.close ();
-			    sock.close ();
-			}
-			catch (IOException e)
-			    {/*nothing to do*/}
-			return;
-		    }
+	}	
 			
-		/* If the client has sent "die", instruct the server to
-		 * signal all threads to shutdown, then exit.
-		 */
-		else if (incoming.compareTo("die") == 0)
-		    {
-			parent.killall ();
-			return;
-		    }	
-			
-		/* Otherwise, just echo what was recieved. */
-		System.out.println ("Client " + idnum + ": " + incoming);
-			
-		/* Try to get the next line.  If an IOException occurs it is
-		 * probably because another client told the server to shutdown,
-		 * the server has closed this thread's socket and is signalling
-		 * for the thread to shutdown using the shutdown flag.
-		 */
-		try {
-		    incoming = in.readLine ();
-		}
-		catch (IOException e) {
-		    if (parent.getFlag())
-			{
-			    System.out.println ("shutting down.");
-			    return;
-			}
-		    else
-			{
-			    System.out.println ("IO Error.");
-			    return;
-			}
-		}
-	    }
     }
 }

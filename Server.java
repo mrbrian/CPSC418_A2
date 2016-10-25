@@ -1,6 +1,10 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Vector;
+
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Server application for Java socket programming with multithreading.
@@ -14,20 +18,22 @@ public class Server
     private Vector <ServerThread> serverthreads;  //holds the active threads
     private boolean shutdown;  //allows clients to shutdown the server
     private int clientcounter;  //id numbers for the clients
-
+    private boolean debug = false;
+    
     /**
      * Main method
      * @param args First argument should be the port to listen on.
      */
     public static void main (String [] args)
     {
-	if (args.length != 1) {
+	if (args.length < 1 || args.length > 2) {
 	    System.out.println ("Usage: java Server port#");
 	    return;
 	}
-
 	try {
 	    Server s = new Server (Integer.parseInt(args[0]));
+	    if (args[1].equals("debug"))
+	    	s.setDebug(true);
 	}
 	catch (ArrayIndexOutOfBoundsException e) {
 	    System.out.println ("Usage: java Server port#");
@@ -40,7 +46,16 @@ public class Server
 	    return;
 	}
     }
-	
+
+    public boolean getDebug()
+    {
+    	return debug;
+    }
+    
+    public void setDebug(boolean d)
+    {
+    	debug = d;
+    }
     /**
      * Constructor, makes a new server listening on specified port.
      * @param port The port to listen on.
@@ -125,6 +140,18 @@ public class Server
     {
 	Socket client = new Socket ();
 	ServerThread st;
+	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+
+    String key;
+	System.out.println("Enter key:");
+	try 
+	{
+		key = stdIn.readLine();
+	} 
+	catch (IOException e1) {
+		e1.printStackTrace();
+		return;
+	}	
 
 	/* Should only do this when it hasn't been told to shutdown. */
 	while (!shutdown) {
@@ -137,7 +164,7 @@ public class Server
 		/* Create a new thread to deal with the client, add it to the vector of open connections.
 		 * Finally, start the thread's execution. Start method makes the threads go by calling their
 		 * run() methods. */
-		st = new ServerThread (client, this, clientcounter++);
+		st = new ServerThread (client, this, clientcounter++, key);
 		serverthreads.add (st);
 		st.start ();
 	    }
