@@ -120,7 +120,8 @@ public class Client
 			int filesize = fs.available();
 			byte[] data = new byte[filesize];
 			fs.read(data);
-	
+			fs.close();
+			
 			// [filename size + filename + data size + data bytes]
 			byte[] out_bytes = new byte[4 + dest_name.length() + 4 + data.length];
 			ByteBuffer bb = ByteBuffer.allocate(4);
@@ -133,22 +134,10 @@ public class Client
 			bb.flip();
 			bb.get(out_bytes, 4 + dest_name.length(), 4);
 			System.arraycopy(data, 0, out_bytes, 4 + dest_name.length() + 4, data.length);
-			int encrypted_size = CryptoUtilities.sendEncrypted(out_bytes, key_spec, out_stream, CryptoUtilities.MSG_FILE, debug);
+			CryptoUtilities.sendEncrypted(out_bytes, key_spec, out_stream, CryptoUtilities.MSG_FILE, debug);
 						
 			printDebug("Waiting for confirmation from server...");
-			byte[] response = CryptoUtilities.receiveEncrypted(key_spec, in_stream, debug);
-			if (debug)
-				printDebug(String.format("Received Client Encrypted Response:\n" +
-						"Packet Size: %d\n" +
-						"Filename Length: %d\n" +
-						"Filename: %s\n" +
-						"Data Size: %d\n" +
-						"Data Bytes: %s\n",
-						out_bytes.length,
-						dest_name.length(),
-						dest_name,
-						data.length, 
-						CryptoUtilities.toHexString(data).substring(0, Math.min(data.length, 1000))));
+			CryptoUtilities.receiveEncrypted(key_spec, in_stream, debug);
 			
 			if (out.checkError()) {
 			    System.out.println ("Client exiting.");
@@ -159,6 +148,7 @@ public class Client
 			}
 		} catch (Exception e) {
 		    System.out.println ("Could not read from input.");
+		    System.out.println (e.getMessage());
 		    return;
 		}		
     }

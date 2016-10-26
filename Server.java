@@ -4,8 +4,6 @@ import java.io.InputStreamReader;
 import java.net.*;
 import java.util.Vector;
 
-import javax.crypto.spec.SecretKeySpec;
-
 /**
  * Server application for Java socket programming with multithreading.
  * Opens a server socket and listens for clients.  When one connects

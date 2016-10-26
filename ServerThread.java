@@ -108,7 +108,11 @@ public class ServerThread extends Thread
 	    out_file.write(data);
 	    out_file.close();
 	    
-	    CryptoUtilities.sendEncrypted("SUCCESS".getBytes(), keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);	    
+	    // where to check if its a failure
+	    String result_str = "SUCCESS";	    
+	    byte[] result_bytes = new byte[4 + result_str.length()];
+	    
+	    CryptoUtilities.sendEncrypted(result_bytes, keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);	    
 		
 		stdIn.close();
 		sock.close();

@@ -251,9 +251,10 @@ public class CryptoUtilities {
 				switch (msg_type)
 				{
 					case MSG_FILE:
-						System.out.println(getEncryptedPacketString(encrypted.length, message));
+						System.out.println(getFileMessageString(message));
 						break;
 					case MSG_RESULT:
+						System.out.println(getResultMessageString(message));
 						break;
 				}
 			}
@@ -270,59 +271,76 @@ public class CryptoUtilities {
 		while (in_stream.available() <= 0)
 		{ }
 
-		int msg_type = in_stream.readInt();		int filesize = in_stream.readInt();
-		byte[] encrypted = new byte[filesize];
+		int msg_type = in_stream.readInt();		
+		int msg_size = in_stream.readInt();
+		byte[] encrypted = new byte[msg_size];
 
 		int bytesRead = 0;
-		while (bytesRead < filesize) {
-			bytesRead += in_stream.read(encrypted, bytesRead, filesize - bytesRead);
+		while (bytesRead < msg_size) {
+			bytesRead += in_stream.read(encrypted, bytesRead, msg_size - bytesRead);
 		}		
 
-		if (debug)
-		{
-			switch (msg_type)
-			{
-				case MSG_FILE:
-					System.out.println(getEncryptedPacketString(encrypted));
-					break;
-				case MSG_RESULT:
-					break;
-			}
-		}
 		byte[] combined = decrypt(encrypted, key);
 		if (!verify_hash(combined, key))
 			throw new Exception("Message failed hash verification.");
 
 		byte[] message = extract_message(combined);
+		if (debug)
+		{
+			switch (msg_type)
+			{
+				case MSG_FILE:
+					System.out.println(getFileMessageString(message));
+					break;
+				case MSG_RESULT:
+					System.out.println(getResultMessageString(message));
+					break;
+			}
+		}
 		
 		return message;
 	}
 	
-	public static String getFilePacketString(int encrypted_length, byte[] data) 
+	public static String getFileMessageString(byte[] bytes) 
 	{
 		ByteBuffer bb = ByteBuffer.allocate(4);
-		bb.put(data, 0, 4);
+		bb.put(bytes, 0, 4);
 		bb.flip();
 		int dest_name_length = bb.getInt();
 
-		String dest_name = new String(data, 4, dest_name_length);
+		String dest_name = new String(bytes, 4, dest_name_length);
 		
 		bb.clear();
-		bb.put(data, 4 + dest_name_length, 4);
+		bb.put(bytes, 4 + dest_name_length, 4);
 		bb.flip();
 		int data_length = bb.getInt();	
-		System.arraycopy(data, 4 + dest_name_length + 4, data, 0, data.length);
+		byte[] data = new byte[data_length];
+		System.arraycopy(bytes, 4 + dest_name_length + 4, data, 0, data.length);
 		
-		return (String.format("Sending Client Encrypted File:\n" +
-				"Encrypted Packet Size: %d\n" +
+		return (String.format("[Client Encrypted File Message]:\n" +
 				"Filename Length: %d\n" +
 				"Filename: %s\n" +
 				"Data Size: %d\n" +
 				"Data Bytes: %s\n",
-				encrypted_length,
 				dest_name.length(),
 				dest_name,
-				data.length, 
-				CryptoUtilities.toHexString(data).substring(0, Math.min(data.length, 1000))));
+				data_length, 
+				CryptoUtilities.toHexString(data).substring(0, Math.min(data_length, 1000))));
+	}
+	
+	public static String getResultMessageString(byte[] bytes) 
+	{
+		ByteBuffer bb = ByteBuffer.allocate(4);
+		bb.put(bytes, 0, 4);
+		bb.flip();
+		int result_length = bb.getInt();
+		
+		String result_str = new String(bytes, 4, result_length);
+		
+		return (String.format("[Server Result Message]:\n" +
+				"Result Length: %d\n" +
+				"Result: %s\n",
+				result_length,
+				result_str));
 	}
 }
