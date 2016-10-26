@@ -87,10 +87,32 @@ public class ServerThread extends Thread
 		
 	/* Try to read from the socket */
 	try {
+		ByteBuffer bb = ByteBuffer.allocate(4);
 	    byte[] in_bytes = CryptoUtilities.receiveEncrypted(keySpec, in_stream, debug);
 
-		//byte[] in_bytes = new byte[4 + dest_file.length() + 4 + data.length];
-		ByteBuffer bb = ByteBuffer.allocate(4);
+	    if (in_bytes == null)
+	    {
+			System.out.println("Decryption was not successful.");
+
+		    String fail_str = "FAILURE";	    
+		    out_stream.writeUTF(fail_str);		    
+		    out_stream.flush();
+		    /*byte[] fail_bytes = new byte[4 + fail_str.length()];
+		    
+		    bb.clear();
+		    bb.putInt(fail_str.length());
+		    bb.flip();
+		    bb.get(fail_bytes, 0, 4);
+		    
+			CryptoUtilities.sendEncrypted(fail_bytes, keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);*/
+
+			stdIn.close();
+			sock.close();
+			in_stream.close();
+			out_stream.close();			
+			return;
+	    }
+	    
 		bb.put(in_bytes, 0, 4);
 		bb.flip();
 		int dest_name_length = bb.getInt();
@@ -110,17 +132,23 @@ public class ServerThread extends Thread
 	    
 	    // where to check if its a failure
 	    String result_str = "SUCCESS";	    
+	    out_stream.writeUTF(result_str);
+	    /*
 	    byte[] result_bytes = new byte[4 + result_str.length()];
-	    
+	    bb.clear();
+	    bb.putInt(result_str.length());
+	    bb.flip();
+	    bb.get(result_bytes, 0, 4);
+	    System.arraycopy(result_str.getBytes(), 0, result_bytes, 4, result_str.length());
 	    CryptoUtilities.sendEncrypted(result_bytes, keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);	    
-		
+*/		
+	    out_stream.flush();
 		stdIn.close();
 		sock.close();
 		in_stream.close();
 		out_stream.close();
 	}
 	catch (Exception e) {
-	    CryptoUtilities.sendEncrypted("FAILURE".getBytes(), keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);
 	    if (parent.getFlag())
 		{
 		    System.out.println ("shutting down.");

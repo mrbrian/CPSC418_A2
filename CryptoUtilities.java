@@ -228,8 +228,9 @@ public class CryptoUtilities {
 	    // Decrypt the ciphertext
 	    message = cipher.doFinal(cipherText);
 
-	} catch (Exception e) {
-	    e.printStackTrace();
+	} 
+	catch (Exception e) {
+		return null;
 	}
 		
 	return message;
@@ -251,10 +252,10 @@ public class CryptoUtilities {
 				switch (msg_type)
 				{
 					case MSG_FILE:
-						System.out.println(getFileMessageString(message));
+						System.out.println("Sending " + getFileMessageString(message));
 						break;
 					case MSG_RESULT:
-						System.out.println(getResultMessageString(message));
+						System.out.println("Sending " + getResultMessageString(message));
 						break;
 				}
 			}
@@ -281,19 +282,26 @@ public class CryptoUtilities {
 		}		
 
 		byte[] combined = decrypt(encrypted, key);
+		if (combined == null)
+		{
+			System.out.println("Decryption failed.  Wrong key specified?");
+			return null;
+		}		
 		if (!verify_hash(combined, key))
-			throw new Exception("Message failed hash verification.");
-
+		{
+			System.out.println("The digest does not match the message.  (The message was altered?)");
+			return null;
+		}
 		byte[] message = extract_message(combined);
 		if (debug)
 		{
 			switch (msg_type)
 			{
 				case MSG_FILE:
-					System.out.println(getFileMessageString(message));
+					System.out.println("Receiving " + getFileMessageString(message));
 					break;
 				case MSG_RESULT:
-					System.out.println(getResultMessageString(message));
+					System.out.println("Receiving " + getResultMessageString(message));
 					break;
 			}
 		}
@@ -321,7 +329,7 @@ public class CryptoUtilities {
 				"Filename Length: %d\n" +
 				"Filename: %s\n" +
 				"Data Size: %d\n" +
-				"Data Bytes: %s\n",
+				"Data Bytes (only 1000 shown): %s\n",
 				dest_name.length(),
 				dest_name,
 				data_length, 

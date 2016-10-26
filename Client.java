@@ -20,7 +20,7 @@ public class Client
     {
 		if (args.length < 2 || 
 			args.length > 3 || 
-			!args[2].equals("debug")) 
+			(args.length > 3 && !args[2].equals("debug"))) 
 		{
 		    System.out.println ("Usage: java Client hostname port#");
 		    System.out.println ("hostname is a string identifying your server");
@@ -136,8 +136,9 @@ public class Client
 			System.arraycopy(data, 0, out_bytes, 4 + dest_name.length() + 4, data.length);
 			CryptoUtilities.sendEncrypted(out_bytes, key_spec, out_stream, CryptoUtilities.MSG_FILE, debug);
 						
-			printDebug("Waiting for confirmation from server...");
-			CryptoUtilities.receiveEncrypted(key_spec, in_stream, debug);
+			System.out.println("Waiting for confirmation from server...");
+			String result = in_stream.readUTF();
+			System.out.println("Recieved result: " + result);
 			
 			if (out.checkError()) {
 			    System.out.println ("Client exiting.");
