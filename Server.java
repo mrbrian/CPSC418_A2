@@ -26,25 +26,36 @@ public class Server
      */
     public static void main (String [] args)
     {
-	if (args.length < 1 || args.length > 2) {
-	    System.out.println ("Usage: java Server port#");
-	    return;
-	}
-	try {
-	    Server s = new Server (Integer.parseInt(args[0]));
-	    if (args[1].equals("debug"))
-	    	s.setDebug(true);
-	}
-	catch (ArrayIndexOutOfBoundsException e) {
-	    System.out.println ("Usage: java Server port#");
-	    System.out.println ("Second argument is not a port number.");
-	    return;
-	}
-	catch (NumberFormatException e) {
-	    System.out.println ("Usage: java Server port#");
-	    System.out.println ("Second argument is not a port number.");
-	    return;
-	}
+		if (args.length < 1 || args.length > 2) {
+		    System.out.println ("Usage: java Server port#");
+		    return;
+		}
+		try {
+		    Server s;
+		    if (args.length == 2)
+	    	{		    	
+		    	if (args[1].equals("debug"))
+		    		 s = new Server (Integer.parseInt(args[0]), true);
+		    	else
+		    	{
+		    	    System.out.println ("Usage: java Server port# [debug]");
+		    	    System.out.println ("Incorrect third argument.");
+		    	    return;
+		    	}
+	    	}
+		    else
+	    		 s = new Server (Integer.parseInt(args[0]), false);
+		}
+		catch (ArrayIndexOutOfBoundsException e) {
+		    System.out.println ("Usage: java Server port# [debug]");
+		    System.out.println ("Second argument is not a port number.");
+		    return;
+		}
+		catch (NumberFormatException e) {
+		    System.out.println ("Usage: java Server port# [debug]");
+		    System.out.println ("Second argument is not a port number.");
+		    return;
+		}
     }
 
     public boolean getDebug()
@@ -60,25 +71,26 @@ public class Server
      * Constructor, makes a new server listening on specified port.
      * @param port The port to listen on.
      */
-    public Server (int port)
+    public Server (int port, boolean d)
     {
-	clientcounter = 0;
-	shutdown = false;
-	try {
-	    serversock = new ServerSocket (port);
-	}
-	catch (IOException e) {
-	    System.out.println ("Could not create server socket.");
-	    return;
-	}
-	/* Server socket open, make a vector to store active threads. */
-	serverthreads = new Vector <ServerThread> (0,1);
-		
-	/* Output connection info for the server */
-	System.out.println ("Server IP address: " + serversock.getInetAddress().getHostAddress() + ",  port " + port);
-
-	/* listen on the socket for connections. */
-	listen ();
+    	debug = d;
+		clientcounter = 0;
+		shutdown = false;
+		try {
+		    serversock = new ServerSocket (port);
+		}
+		catch (IOException e) {
+		    System.out.println ("Could not create server socket.");
+		    return;
+		}
+		/* Server socket open, make a vector to store active threads. */
+		serverthreads = new Vector <ServerThread> (0,1);
+			
+		/* Output connection info for the server */
+		System.out.println ("Server IP address: " + serversock.getInetAddress().getHostAddress() + ",  port " + port);
+	
+		/* listen on the socket for connections. */
+		listen ();
     }
 	
     /**
@@ -87,7 +99,7 @@ public class Server
      */
     public boolean getFlag ()
     {
-	return shutdown;
+    	return shutdown;
     }
 	
     /**
@@ -96,13 +108,13 @@ public class Server
      */
     public void kill (ServerThread st)
     {
-	System.out.println ("Killing Client " + st.getID() + ".");
-		
-	/* Find the thread in the vector and remove it. */
-	for (int i = 0; i < serverthreads.size(); i++) {
-	    if (serverthreads.elementAt(i) == st)
-		serverthreads.remove(i);
-	}
+		System.out.println ("Killing Client " + st.getID() + ".");
+			
+		/* Find the thread in the vector and remove it. */
+		for (int i = 0; i < serverthreads.size(); i++) {
+		    if (serverthreads.elementAt(i) == st)
+			serverthreads.remove(i);
+		}
     }
 	
     /**
@@ -110,27 +122,27 @@ public class Server
      */
     public void killall ()
     {
-	shutdown = true;
-	System.out.println ("Shutting Down Server.");
-		
-	/* For each active thread, close it's socket.  This will cause the thread
-	 * to stop blocking because of the IO operation, and check the shutdown flag.
-	 * The thread will then exit itself when it sees shutdown is true.  Then exits. */
-	for (int i = serverthreads.size() - 1; i >= 0; i--) {
-	    try {
-		System.out.println ("Killing Client " + serverthreads.elementAt(i).getID() + ".");
-		serverthreads.elementAt(i).getSocket().close();
-	    }
-	    catch (IOException e)
-		{System.out.println ("Could not close socket.");}
-	    serverthreads.remove(i);
-	}
-	try {
-	    serversock.close();
-	} 
-	catch (IOException e) {
-	    System.out.println ("Could not close server socket.");
-	}		
+		shutdown = true;
+		System.out.println ("Shutting Down Server.");
+			
+		/* For each active thread, close it's socket.  This will cause the thread
+		 * to stop blocking because of the IO operation, and check the shutdown flag.
+		 * The thread will then exit itself when it sees shutdown is true.  Then exits. */
+		for (int i = serverthreads.size() - 1; i >= 0; i--) {
+		    try {
+			System.out.println ("Killing Client " + serverthreads.elementAt(i).getID() + ".");
+			serverthreads.elementAt(i).getSocket().close();
+		    }
+		    catch (IOException e)
+			{System.out.println ("Could not close socket.");}
+		    serverthreads.remove(i);
+		}
+		try {
+		    serversock.close();
+		} 
+		catch (IOException e) {
+		    System.out.println ("Could not close server socket.");
+		}		
     }
 	
     /**
@@ -138,39 +150,38 @@ public class Server
      */
     private void listen ()
     {
-	Socket client = new Socket ();
-	ServerThread st;
-	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-
-    String key;
-	System.out.println("Enter key:");
-	try 
-	{
-		key = stdIn.readLine();
-	} 
-	catch (IOException e1) {
-		e1.printStackTrace();
-		return;
-	}	
-
-	/* Should only do this when it hasn't been told to shutdown. */
-	while (!shutdown) {
-	    /* Try to accept an incoming connection. */
-	    try {
-		client = serversock.accept ();
-		/* Output info about the client */
-		System.out.println ("Client on machine " + client.getInetAddress().getHostAddress() + " has connected on port " + client.getLocalPort() + ".");
-				
-		/* Create a new thread to deal with the client, add it to the vector of open connections.
-		 * Finally, start the thread's execution. Start method makes the threads go by calling their
-		 * run() methods. */
-		st = new ServerThread (client, this, clientcounter++, key);
-		serverthreads.add (st);
-		st.start ();
-	    }
-	    catch (IOException e) {
-		/* Server Socket is closed, probably because a client told the server to shutdown */
-	    }
-	}
+		Socket client = new Socket ();
+		ServerThread st;
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+	
+	    String key;
+		System.out.println("Enter key:");
+		try {
+			key = stdIn.readLine();
+		} 
+		catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}	
+	
+		/* Should only do this when it hasn't been told to shutdown. */
+		while (!shutdown) {
+		    /* Try to accept an incoming connection. */
+		    try {
+				client = serversock.accept ();
+				/* Output info about the client */
+				System.out.println ("Client on machine " + client.getInetAddress().getHostAddress() + " has connected on port " + client.getLocalPort() + ".");
+						
+				/* Create a new thread to deal with the client, add it to the vector of open connections.
+				 * Finally, start the thread's execution. Start method makes the threads go by calling their
+				 * run() methods. */
+				st = new ServerThread (client, this, clientcounter++, key);
+				serverthreads.add (st);
+				st.start ();
+		    }
+		    catch (IOException e) {
+			/* Server Socket is closed, probably because a client told the server to shutdown */
+		    }
+		}
     }
 }

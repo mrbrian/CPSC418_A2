@@ -24,7 +24,7 @@ QYTGY CSTWG YYJPD VATOF SHIHE ANPBR AAZKW XSIVM IVPYW ZXCGK
 BNOHE GNOYS XSWWV PORVS QJIWU WXAKV ZCEGY ZWPHW XANHD GJPGK 
 MNPBV WHIHV NBFAI NSPXV";
 
-my @hash0 = qw(
+my @hash1 = qw(
  I 
  A 
  E 
@@ -53,30 +53,68 @@ my @hash0 = qw(
  C 
 );
 
-my $shift0=17;
-my $shift1=17;
-my $shift2=0;
-my $shift3=13;
-my $shift4=17;
+my @hash0 = qw(
+ - 
+ I 
+ - 
+ - 
+ - 
+ - 
+ T 
+ - 
+ N
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ O 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ E 
+ Y 
+ J 
+);
 
-my $count = 0;
+
+
+my $shift0=10;
+my $shift1=10;
+my $shift2=0;
+my $shift3=6;
+my $shift4=-5;
+
+my $i = 0;
 $str =~ s/ //g;
 $str =~ s/\n//g;
 
-
 for my $chr (split //, $str) {
-    my $chr_val = ord($chr)-ord('A');
-    $chr_val = ord($chr)-ord('A')+$shift0 if ($count % 5 == 0);
-    $chr_val = ord($chr)-ord('A')+$shift1 if ($count % 5 == 1);
-    $chr_val = ord($chr)-ord('A')+$shift2 if ($count % 5 == 2);
-    $chr_val = ord($chr)-ord('A')+$shift3 if ($count % 5 == 3);
-    $chr_val = ord($chr)-ord('A')+$shift4 if ($count % 5 == 4);
+  decrypt($chr, $i);
+  $i += 1;
+}
+
+sub decrypt{    
+    my $chr = shift;
+    my $count = shift;
+
+    my $chr_val = ord($chr)-ord('A');	
+    my $new_chr = ord(substr($hash0[$chr_val],0,1));
+
+    $new_chr = $new_chr+$shift0 if ($count % 5 == 0);
+    $new_chr = $new_chr+$shift1 if ($count % 5 == 1);
+    $new_chr = $new_chr+$shift2 if ($count % 5 == 2);
+    $new_chr = $new_chr+$shift3 if ($count % 5 == 3);
+    $new_chr = $new_chr+$shift4 if ($count % 5 == 4);
+
+    $new_chr += 26 if ($new_chr < 65);
+    $new_chr -= 26 if ($new_chr > 90);
 	
-    $chr_val -= 26 if ($chr_val >= 26);
-    $chr_val -= 26 if ($chr_val >= 26);
-	
-    print "$hash0[$chr_val]";
-    print " " if ($count % 5 == 0 && $count > 0);
-    $count += 1;
-  }
-  print "\n";
+    print chr($new_chr);
+    print " " if ($count % 5 == 4);
+}

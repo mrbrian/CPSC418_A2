@@ -1,4 +1,5 @@
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.io.*;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -16,9 +17,9 @@ public class ServerThread extends Thread
     private int idnum;  //The client's id number.
     private SecretKeySpec keySpec;
     
-    public void debug(String s)
+    public void printDebug(String s)
     {
-    	if (debug)
+    	if (!debug)
     		return;
     	System.out.println("[ServerThread]" + s);
     }
@@ -86,26 +87,36 @@ public class ServerThread extends Thread
 		
 	/* Try to read from the socket */
 	try {
-	    byte[] filename = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
-	    debug("Received filename: " + new String(filename));
+	    byte[] in_bytes = CryptoUtilities.receiveEncrypted(keySpec, in_stream, debug);
 
-	    byte[] filesize = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
-	    debug("Received filesize: " + new String(filesize));
+		//byte[] in_bytes = new byte[4 + dest_file.length() + 4 + data.length];
+		ByteBuffer bb = ByteBuffer.allocate(4);
+		bb.put(in_bytes, 0, 4);
+		bb.flip();
+		int dest_name_length = bb.getInt();
 
-	    byte[] data = CryptoUtilities.receiveEncrypted(keySpec, in_stream);
-	    debug("Received data: " + new String(data));
-	    
-	    FileOutputStream out_file = new FileOutputStream(new String(filename));
+		String dest_name = new String(in_bytes, 4, dest_name_length);
+		
+		bb.clear();
+		bb.put(in_bytes, 4 + dest_name_length, 4);
+		bb.flip();
+		int data_length = bb.getInt();
+		byte[] data = new byte[data_length];		
+		System.arraycopy(in_bytes, 4 + dest_name_length + 4, data, 0, data.length);
+
+	    FileOutputStream out_file = new FileOutputStream(new String(dest_name));
 	    out_file.write(data);
 	    out_file.close();
 	    
-	    CryptoUtilities.sendEncrypted("Yay".getBytes(), keySpec, out_stream);
+	    CryptoUtilities.sendEncrypted("SUCCESS".getBytes(), keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);	    
+		
 		stdIn.close();
 		sock.close();
 		in_stream.close();
 		out_stream.close();
 	}
 	catch (Exception e) {
+	    CryptoUtilities.sendEncrypted("FAILURE".getBytes(), keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);
 	    if (parent.getFlag())
 		{
 		    System.out.println ("shutting down.");

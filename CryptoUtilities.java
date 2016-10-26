@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.security.*;
 import javax.crypto.*;
@@ -13,6 +14,9 @@ import javax.crypto.spec.*;
  */
 public class CryptoUtilities {
 
+	public static final int MSG_FILE = 0;
+	public static final int MSG_RESULT = 1;;
+	
     // AES key length to be used (in bytes)
     public static final int AES_KEY_LEN = 16;
 
@@ -231,41 +235,94 @@ public class CryptoUtilities {
 	return message;
     }
 
-	public static void sendEncrypted(byte[] message, SecretKeySpec key, DataOutputStream out_stream) 
+	public static int sendEncrypted(byte[] message, SecretKeySpec key, DataOutputStream out_stream, int msg_type, boolean debug) 
 	{
 		byte[] combined = append_hash(message, key);
 		byte[] encrypted = encrypt(combined, key);
 		
 		try 
 		{
+			out_stream.writeInt(msg_type);
 			out_stream.writeInt(encrypted.length);
 			out_stream.write(encrypted);
+
+			if (debug)
+			{
+				switch (msg_type)
+				{
+					case MSG_FILE:
+						System.out.println(getEncryptedPacketString(encrypted.length, message));
+						break;
+					case MSG_RESULT:
+						break;
+				}
+			}
 		} 
 		catch (IOException e) 
 		{
 			e.printStackTrace();
 		}
+		return encrypted.length;
 	}
 
-	public static byte[] receiveEncrypted(SecretKeySpec key, DataInputStream  in_stream) throws Exception 
+	public static byte[] receiveEncrypted(SecretKeySpec key, DataInputStream  in_stream, boolean debug) throws Exception 
 	{	
 		while (in_stream.available() <= 0)
 		{ }
-		
-		int filesize = in_stream.readInt();
+
+		int msg_type = in_stream.readInt();		int filesize = in_stream.readInt();
 		byte[] encrypted = new byte[filesize];
 
 		int bytesRead = 0;
 		while (bytesRead < filesize) {
 			bytesRead += in_stream.read(encrypted, bytesRead, filesize - bytesRead);
 		}		
-		
+
+		if (debug)
+		{
+			switch (msg_type)
+			{
+				case MSG_FILE:
+					System.out.println(getEncryptedPacketString(encrypted));
+					break;
+				case MSG_RESULT:
+					break;
+			}
+		}
 		byte[] combined = decrypt(encrypted, key);
 		if (!verify_hash(combined, key))
 			throw new Exception("Message failed hash verification.");
 
 		byte[] message = extract_message(combined);
+		
 		return message;
 	}
+	
+	public static String getFilePacketString(int encrypted_length, byte[] data) 
+	{
+		ByteBuffer bb = ByteBuffer.allocate(4);
+		bb.put(data, 0, 4);
+		bb.flip();
+		int dest_name_length = bb.getInt();
 
+		String dest_name = new String(data, 4, dest_name_length);
+		
+		bb.clear();
+		bb.put(data, 4 + dest_name_length, 4);
+		bb.flip();
+		int data_length = bb.getInt();	
+		System.arraycopy(data, 4 + dest_name_length + 4, data, 0, data.length);
+		
+		return (String.format("Sending Client Encrypted File:\n" +
+				"Encrypted Packet Size: %d\n" +
+				"Filename Length: %d\n" +
+				"Filename: %s\n" +
+				"Data Size: %d\n" +
+				"Data Bytes: %s\n",
+				encrypted_length,
+				dest_name.length(),
+				dest_name,
+				data.length, 
+				CryptoUtilities.toHexString(data).substring(0, Math.min(data.length, 1000))));
+	}
 }
