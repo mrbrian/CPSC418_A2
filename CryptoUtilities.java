@@ -14,9 +14,6 @@ import javax.crypto.spec.*;
  */
 public class CryptoUtilities {
 
-	public static final int MSG_FILE = 0;
-	public static final int MSG_RESULT = 1;;
-	
     // AES key length to be used (in bytes)
     public static final int AES_KEY_LEN = 16;
 
@@ -114,32 +111,32 @@ public class CryptoUtilities {
      */
     public static boolean verify_hash(byte[] messageHash, SecretKeySpec keySpec)
     {
-	boolean ret = false;
+    	boolean ret = false;
+			
+		try {
+		    // Split the array into the message and the digest
+		    byte[] message = new byte[messageHash.length - HMAC_SHA1_LEN];
+		    byte[] hash = new byte[HMAC_SHA1_LEN];
+				
+		    System.arraycopy(messageHash, 0, message, 0, message.length);
+		    System.arraycopy(messageHash, message.length, hash, 0, hash.length);
+				
+		    // Initialize the MAC with the given key
+		    Mac mac = Mac.getInstance("HmacSHA1");
+		    mac.init(keySpec);
+				
+		    // Get the MAC of the message
+		    byte[] m = mac.doFinal(message);
+				
+		    // compare the the MAC sent and the one calculated
+		    ret = Arrays.equals(m, hash);
+				
+		} catch (Exception e) {
+		    // if there is an error, we know that hash can't be correct
+		    ret = false;
+		}
 		
-	try {
-	    // Split the array into the message and the digest
-	    byte[] message = new byte[messageHash.length - HMAC_SHA1_LEN];
-	    byte[] hash = new byte[HMAC_SHA1_LEN];
-			
-	    System.arraycopy(messageHash, 0, message, 0, message.length);
-	    System.arraycopy(messageHash, message.length, hash, 0, hash.length);
-			
-	    // Initialize the MAC with the given key
-	    Mac mac = Mac.getInstance("HmacSHA1");
-	    mac.init(keySpec);
-			
-	    // Get the MAC of the message
-	    byte[] m = mac.doFinal(message);
-			
-	    // compare the the MAC sent and the one calculated
-	    ret = Arrays.equals(m, hash);
-			
-	} catch (Exception e) {
-	    // if there is an error, we know that hash can't be correct
-	    ret = false;
-	}
-		
-	return ret;
+		return ret;
     }
 
     public static void byte2hex(byte b, StringBuffer buf) {
@@ -248,17 +245,7 @@ public class CryptoUtilities {
 			out_stream.write(encrypted);
 
 			if (debug)
-			{
-				switch (msg_type)
-				{
-					case MSG_FILE:
-						System.out.println("Sending " + getFileMessageString(message));
-						break;
-					case MSG_RESULT:
-						System.out.println("Sending " + getResultMessageString(message));
-						break;
-				}
-			}
+				System.out.println("Sending " + getFileMessageString(message));
 		} 
 		catch (IOException e) 
 		{
@@ -294,17 +281,7 @@ public class CryptoUtilities {
 		}
 		byte[] message = extract_message(combined);
 		if (debug)
-		{
-			switch (msg_type)
-			{
-				case MSG_FILE:
-					System.out.println("Receiving " + getFileMessageString(message));
-					break;
-				case MSG_RESULT:
-					System.out.println("Receiving " + getResultMessageString(message));
-					break;
-			}
-		}
+			System.out.println("Receiving " + getFileMessageString(message));
 		
 		return message;
 	}

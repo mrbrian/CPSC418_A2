@@ -97,14 +97,6 @@ public class ServerThread extends Thread
 		    String fail_str = "FAILURE";	    
 		    out_stream.writeUTF(fail_str);		    
 		    out_stream.flush();
-		    /*byte[] fail_bytes = new byte[4 + fail_str.length()];
-		    
-		    bb.clear();
-		    bb.putInt(fail_str.length());
-		    bb.flip();
-		    bb.get(fail_bytes, 0, 4);
-		    
-			CryptoUtilities.sendEncrypted(fail_bytes, keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);*/
 
 			stdIn.close();
 			sock.close();
@@ -130,18 +122,8 @@ public class ServerThread extends Thread
 	    out_file.write(data);
 	    out_file.close();
 	    
-	    // where to check if its a failure
 	    String result_str = "SUCCESS";	    
 	    out_stream.writeUTF(result_str);
-	    /*
-	    byte[] result_bytes = new byte[4 + result_str.length()];
-	    bb.clear();
-	    bb.putInt(result_str.length());
-	    bb.flip();
-	    bb.get(result_bytes, 0, 4);
-	    System.arraycopy(result_str.getBytes(), 0, result_bytes, 4, result_str.length());
-	    CryptoUtilities.sendEncrypted(result_bytes, keySpec, out_stream, CryptoUtilities.MSG_RESULT, debug);	    
-*/		
 	    out_stream.flush();
 		stdIn.close();
 		sock.close();

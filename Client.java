@@ -59,7 +59,6 @@ public class Client
     	debug = d;
 		/* Allows us to get input from the keyboard. */
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-		String userinput;
 		PrintWriter out;
 		DataOutputStream out_stream;
 		DataInputStream in_stream;
