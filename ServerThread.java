@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class ServerThread extends Thread
 {
-	private boolean debug;
+	private boolean debug;  // toggle debugging messages
     private Socket sock;  //The socket it communicates with the client on.
     private Server parent;  //Reference to Server object for message passing.
     private int idnum;  //The client's id number.
@@ -19,7 +19,7 @@ public class ServerThread extends Thread
     
     public void printDebug(String s)
     {
-    	if (!debug)
+    	if (!debug)	
     		return;
     	System.out.println("[ServerThread]" + s);
     }
@@ -85,49 +85,58 @@ public class ServerThread extends Thread
 	    return;
 	}
 		
-	/* Try to read from the socket */
 	try {
-		ByteBuffer bb = ByteBuffer.allocate(4);
+		ByteBuffer bb = ByteBuffer.allocate(4);	// for translating bytes to integers
+		
+		// Wait for, receive, and decrypt an incoming message 
 	    byte[] in_bytes = CryptoUtilities.receiveEncrypted(keySpec, in_stream, debug);
 
-	    if (in_bytes == null)
+	    if (in_bytes == null)	// an error occured while receiving & decrypting an incoming message 
 	    {
 			System.out.println("Decryption was not successful.");
 
 		    String fail_str = "FAILURE";	    
-		    out_stream.writeUTF(fail_str);		    
-		    out_stream.flush();
-
+		    printDebug("Sending acknowledgement: FAILURE");    		    
+		    out_stream.writeUTF(fail_str);	// send failure confirmation to client 
+		    out_stream.flush();	// send remaining data
 			stdIn.close();
-			sock.close();
-			in_stream.close();
+			sock.close();		// close socket
+			in_stream.close();	// close streams
 			out_stream.close();			
 			return;
 	    }
 	    
-		bb.put(in_bytes, 0, 4);
+	    // extract the destination filename length 
+		bb.put(in_bytes, 0, 4);		// adding the first 4 bytes for translating to an int
 		bb.flip();
-		int dest_name_length = bb.getInt();
+		int dest_name_length = bb.getInt();	// grab the resulting int
 
+		// get the destination filename string  
 		String dest_name = new String(in_bytes, 4, dest_name_length);
 		
+		// get the data size integer
 		bb.clear();
-		bb.put(in_bytes, 4 + dest_name_length, 4);
+		bb.put(in_bytes, 4 + dest_name_length, 4);  // add the next 4 bytes for translating
 		bb.flip();
-		int data_length = bb.getInt();
+		int data_length = bb.getInt(); // grabbing the data size  
+		
+		// get the data
 		byte[] data = new byte[data_length];		
-		System.arraycopy(in_bytes, 4 + dest_name_length + 4, data, 0, data.length);
+		System.arraycopy(in_bytes, 4 + dest_name_length + 4, data, 0, data.length); // extract the data bytes
 
+		// write the data to destination file
 	    FileOutputStream out_file = new FileOutputStream(new String(dest_name));
 	    out_file.write(data);
 	    out_file.close();
 	    
-	    String result_str = "SUCCESS";	    
-	    out_stream.writeUTF(result_str);
-	    out_stream.flush();
+	    // report success to client
+	    String result_str = "SUCCESS";	
+	    printDebug("Sending acknowledgement: SUCCESS");
+	    out_stream.writeUTF(result_str);	// send the success message to client
+	    out_stream.flush();		// send remaining data
 		stdIn.close();
-		sock.close();
-		in_stream.close();
+		sock.close();			// close socket
+		in_stream.close();		// close streams
 		out_stream.close();
 	}
 	catch (Exception e) {

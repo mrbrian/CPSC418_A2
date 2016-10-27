@@ -4,10 +4,10 @@ Brian Yee
 
 Files Submitted:
 ----------------
-  Client.java - 
-  Sever.java - 
-  ServerThread.java -
-  CryptoUtilities.java -
+  Client.java - Client related code
+  Server.java - Server related code
+  ServerThread.java - ServerThread that handles receiving/decrypts incoming data from a client.
+  CryptoUtilities.java - Encryption/decryption/file transfer/protocol message printing and helper methods.
 
 To Build:
 ---------
@@ -15,12 +15,12 @@ To Build:
 
 To Run:
 -------
-  java Server [port]
-    - outputs the encrypted file: "secured.out"
+  java Server port [debug]
+    - Listens for incoming messages from Clients
 
-  java Client [server address] [port]
-    - typically the inputfile should be the "secured.out" output file from secureFile
-    - outputs the decrypted file: "decrypted.out"
+  java Client [server address] [port] [debug]
+    - Connects to the server at the given address and sends a user-specified file.
+    - (optional argument) debug enables displaying protocol messages
 
 Working in full.  No known bugs.
 

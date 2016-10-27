@@ -139,6 +139,10 @@ public class CryptoUtilities {
 		return ret;
     }
 
+    /*
+     * Converts a byte array to hex string
+     * this code from http://java.sun.com/j2se/1.4.2/docs/guide/security/jce/JCERefGuide.html#HmacEx
+     */
     public static void byte2hex(byte b, StringBuffer buf) {
         char[] hexChars = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
                             '9', 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -147,7 +151,11 @@ public class CryptoUtilities {
         buf.append(hexChars[high]);
         buf.append(hexChars[low]);
     }
-    
+
+    /*
+     * Converts a byte array to hex string
+     * this code from http://java.sun.com/j2se/1.4.2/docs/guide/security/jce/JCERefGuide.html#HmacEx
+     */
     public static String toHexString(byte[] block) {
         StringBuffer buf = new StringBuffer();
 
@@ -192,8 +200,6 @@ public class CryptoUtilities {
 	return ret;
     }
 
-
-
 	
     /**
      * Decrypts the given message using the given key with AES-CBC.
@@ -233,19 +239,22 @@ public class CryptoUtilities {
 	return message;
     }
 
-	public static int sendEncrypted(byte[] message, SecretKeySpec key, DataOutputStream out_stream, int msg_type, boolean debug) 
+    /**
+     * Encrypts the the given message with the given key and sends out over out_stream
+     * Prints message contents if debug enabled
+     */
+	public static int sendEncrypted(byte[] message, SecretKeySpec key, DataOutputStream out_stream, boolean debug) 
 	{
 		byte[] combined = append_hash(message, key);
 		byte[] encrypted = encrypt(combined, key);
 		
 		try 
 		{
-			out_stream.writeInt(msg_type);
-			out_stream.writeInt(encrypted.length);
-			out_stream.write(encrypted);
+			out_stream.writeInt(encrypted.length);	// send size of the data 
+			out_stream.write(encrypted);	// send the data bytes
 
 			if (debug)
-				System.out.println("Sending " + getFileMessageString(message));
+				System.out.println("Sending " + getFileMessageString(message));	// nicely display message contents
 		} 
 		catch (IOException e) 
 		{
@@ -253,35 +262,43 @@ public class CryptoUtilities {
 		}
 		return encrypted.length;
 	}
-
-	public static byte[] receiveEncrypted(SecretKeySpec key, DataInputStream  in_stream, boolean debug) throws Exception 
+	
+    /**
+     * Waits for incoming data, then receives and decrypts the incoming messages from in_stream
+     * Prints message contents if debug enabled
+     */
+	public static byte[] receiveEncrypted(SecretKeySpec key, DataInputStream in_stream, boolean debug) throws Exception 
 	{	
+		// wait for incoming data
 		while (in_stream.available() <= 0)
 		{ }
 
-		int msg_type = in_stream.readInt();		
+		// determine size of data blob
 		int msg_size = in_stream.readInt();
 		byte[] encrypted = new byte[msg_size];
 
+		// read in the expected number of data bytes
 		int bytesRead = 0;
 		while (bytesRead < msg_size) {
 			bytesRead += in_stream.read(encrypted, bytesRead, msg_size - bytesRead);
 		}		
 
+		// decrypt the received encrypted bytes
 		byte[] combined = decrypt(encrypted, key);
-		if (combined == null)
+		
+		if (combined == null)  // if there was an error during decryption
 		{
 			System.out.println("Decryption failed.  Wrong key specified?");
 			return null;
 		}		
-		if (!verify_hash(combined, key))
+		if (!verify_hash(combined, key)) 	// if the hash verification failed
 		{
 			System.out.println("The digest does not match the message.  (The message was altered?)");
 			return null;
 		}
-		byte[] message = extract_message(combined);
+		byte[] message = extract_message(combined);	// extract the decrypted message
 		if (debug)
-			System.out.println("Receiving " + getFileMessageString(message));
+			System.out.println("Receiving " + getFileMessageString(message));	// print the message contents
 		
 		return message;
 	}
@@ -289,43 +306,34 @@ public class CryptoUtilities {
 	public static String getFileMessageString(byte[] bytes) 
 	{
 		ByteBuffer bb = ByteBuffer.allocate(4);
+
+		// extract destination name length (first 4 bytes)
 		bb.put(bytes, 0, 4);
 		bb.flip();
-		int dest_name_length = bb.getInt();
+		int dest_name_length = bb.getInt();	
 
+		// extract destination name
 		String dest_name = new String(bytes, 4, dest_name_length);
 		
+		// extract data size
 		bb.clear();
 		bb.put(bytes, 4 + dest_name_length, 4);
 		bb.flip();
 		int data_length = bb.getInt();	
 		byte[] data = new byte[data_length];
+		
+		//extract data bytes
 		System.arraycopy(bytes, 4 + dest_name_length + 4, data, 0, data.length);
 		
+		// return formatted string of contents
 		return (String.format("[Client Encrypted File Message]:\n" +
 				"Filename Length: %d\n" +
 				"Filename: %s\n" +
 				"Data Size: %d\n" +
-				"Data Bytes (only 1000 shown): %s\n",
+				"Data Bytes (only 1000 bytes shown): %s[...]\n",
 				dest_name.length(),
 				dest_name,
 				data_length, 
 				CryptoUtilities.toHexString(data).substring(0, Math.min(data_length, 1000))));
-	}
-	
-	public static String getResultMessageString(byte[] bytes) 
-	{
-		ByteBuffer bb = ByteBuffer.allocate(4);
-		bb.put(bytes, 0, 4);
-		bb.flip();
-		int result_length = bb.getInt();
-		
-		String result_str = new String(bytes, 4, result_length);
-		
-		return (String.format("[Server Result Message]:\n" +
-				"Result Length: %d\n" +
-				"Result: %s\n",
-				result_length,
-				result_str));
-	}
+	}	
 }

@@ -11,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class Client 
 {
     private Socket sock;  //Socket to communicate with.
-    private boolean debug;
+    private boolean debug;	// toggle debug messages
     /**
      * Main method, starts the client.
      * @param args args[0] needs to be a hostname, args[1] a port number.
@@ -20,11 +20,12 @@ public class Client
     {
 		if (args.length < 2 || 
 			args.length > 3 || 
-			(args.length > 3 && !args[2].equals("debug"))) 
+			(args.length >= 3 && !args[2].equals("debug"))) 
 		{
-		    System.out.println ("Usage: java Client hostname port#");
+		    System.out.println ("Usage: java Client hostname port# [debug]");
 		    System.out.println ("hostname is a string identifying your server");
 		    System.out.println ("port is a positive integer identifying the port to connect to the server");
+		    System.out.println ("[optional] specifying debug will enabled protocol debug messages");
 		    return;
 		}
 	
@@ -36,7 +37,7 @@ public class Client
 		    	c = new Client(args[0], Integer.parseInt(args[1]), false);
 		}
 		catch (NumberFormatException e) {
-		    System.out.println ("Usage: java Client hostname port#");
+		    System.out.println ("Usage: java Client hostname port# [debug]");
 		    System.out.println ("Second argument was not a port number");
 		    return;
 		}
@@ -90,58 +91,64 @@ public class Client
 		    return;
 		}
 			
-		/* Wait for the user to type stuff. */
 		try {
-			/* Tricky bit.  Since Java does short circuiting of logical 
-			 * expressions, we need to checkerror to be first so it is always 
-			 * executes.  Check error flushes the outputstream, which we need
-			 * to do every time after the user types something, otherwise, 
-			 * Java will wait for the send buffer to fill up before actually 
-			 * sending anything.  See PrintWriter.flush().  If checkerror
-			 * has reported an error, that means the last packet was not 
-			 * delivered and the server has disconnected, probably because 
-			 * another client has told it to shutdown.  Then we check to see
-			 * if the user has exitted or asked the server to shutdown.  In 
-			 * any of these cases we close our streams and exit.
-			 */
+			// Prompt for key
 			System.out.println("Enter key: ");
 		    String key = stdIn.readLine();	    
 		    SecretKeySpec key_spec = CryptoUtilities.key_from_seed(key.getBytes());
 		    
-		    System.out.println("Enter source filename: ");
+		    // Prompt for file to send
+			System.out.println("Enter source filename: ");
 		    String src_file = stdIn.readLine();
 		    	    
+		    // Prompt for destination name			
 		    System.out.println("Enter destination filename: ");
 		    String dest_name = stdIn.readLine();
-		    
-			printDebug("Sending destination filename...");
+
+		    // Read file data			
 			FileInputStream fs = new FileInputStream(src_file);
 			int filesize = fs.available();
 			byte[] data = new byte[filesize];
 			fs.read(data);
 			fs.close();
 			
-			// [filename size + filename + data size + data bytes]
+			// Allocate byte array for outgoing message
+			// [(4 bytes)filename size + (x bytes)filename + (4 bytes)data size + (y bytes)data bytes]
 			byte[] out_bytes = new byte[4 + dest_name.length() + 4 + data.length];
+			
+			// Assemble outgoing message 
+			// add filename size in bytes
 			ByteBuffer bb = ByteBuffer.allocate(4);
 			bb.putInt(dest_name.length());
 			bb.flip();			
 			bb.get(out_bytes, 0, 4);
+			
+			// add destination filename in bytes
 			System.arraycopy(dest_name.getBytes(), 0, out_bytes, 4, dest_name.length());
-			bb.clear();
+			bb.clear();		
+			
+			// add data size in bytes
 			bb.putInt(data.length);
 			bb.flip();
 			bb.get(out_bytes, 4 + dest_name.length(), 4);
+
+			// add data bytes
 			System.arraycopy(data, 0, out_bytes, 4 + dest_name.length() + 4, data.length);
-			CryptoUtilities.sendEncrypted(out_bytes, key_spec, out_stream, CryptoUtilities.MSG_FILE, debug);
+			
+			// send file message to client
+			CryptoUtilities.sendEncrypted(out_bytes, key_spec, out_stream, debug);
 						
-			System.out.println("Waiting for confirmation from server...");
+			printDebug("Waiting for confirmation from server...");
+			while (in_stream.available() <= 0)	// wait for a message 
+			{
+			}
+			
 			String result = in_stream.readUTF();
-			System.out.println("Recieved result: " + result);
+			printDebug("Recieved result: " + result);
 			
 			if (out.checkError()) {
 			    System.out.println ("Client exiting.");
-			    stdIn.close ();
+			    stdIn.close ();		// close sockets and streams
 			    out.close ();
 			    sock.close();
 			    return;

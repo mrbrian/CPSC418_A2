@@ -37,7 +37,7 @@ public class Server
 		    	else
 		    	{
 		    	    System.out.println ("Usage: java Server port# [debug]");
-		    	    System.out.println ("Incorrect third argument.");
+		    	    System.out.println ("Invalid third argument.");
 		    	    return;
 		    	}
 	    	}
@@ -152,10 +152,11 @@ public class Server
 		ServerThread st;
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 	
+		// prompt for key
 	    String key;
 		System.out.println("Enter key:");
 		try {
-			key = stdIn.readLine();
+			key = stdIn.readLine();	
 		} 
 		catch (IOException e1) {
 			e1.printStackTrace();
@@ -180,6 +181,11 @@ public class Server
 		    catch (IOException e) {
 			/* Server Socket is closed, probably because a client told the server to shutdown */
 		    }
+		}
+		try {
+			client.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
     }
 }
