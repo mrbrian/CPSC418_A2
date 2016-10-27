@@ -129,17 +129,19 @@ $=ay^4+by^3+cy^2+dy$\\
 $=by^3+cy^2+dy+a$ (since $y^4=1$)\\
 \\
 d.ii)\\
+Prove that in this arithmetic, $y^i=y^j$ for any integer $i\geq 0$, where $j\equiv i \pmod 4$ with $0\leq j \leq 3$\\
+\\
 Base cases:\\
-$i=0$: $y^i=y^j$ since $0\equiv 0 \pmod 4$\\
-$i=1$: $y^i=y^j$ since $1\equiv 1 \pmod 4$\\
-$i=2$: $y^i=y^j$ since $2\equiv 2 \pmod 4$\\
-$i=3$: $y^i=y^j$ since $3\equiv 3 \pmod 4$\\
+$i=0$: $y^i=y^j$ since $0\equiv 0 \pmod 4$ and $j == 0$\\
+$i=1$: $y^i=y^j$ since $1\equiv 1 \pmod 4$ and $0 \leq j\leq 3$\\
+$i=2$: $y^i=y^j$ since $2\equiv 2 \pmod 4$ and $0\leq j \leq 3$\\
+$i=3$: $y^i=y^j$ since $3\equiv 3 \pmod 4$ and $j==3$\\
 \\
 Induction Hypothesis:\\
-Assume that $y^i=y^j$ for all $i\in \mathbb{Z}$, where $i \geq 0$ such that $j=i \pmod 4$ and $0\geq j \geq 3$.\\
+Assume that $y^i=y^j$ for all $i\in \mathbb{Z}$, where $i \geq 0$ such that $j=i \pmod 4$ and $0\leq j \leq 3$.\\
 \\
 Suppose $4 \leq k$, where $k\in \mathbb{Z}$.\\
-Since $(k+1) \geq 0$ and $(k+1) \in \mathbb{Z}$, by the induction hypothesis, we have $y^{k+1}=y^j$ where $j=(k+i)\pmod 4$ and $0\geq j \geq 3$.\\ 
+Since $(k+1) \geq 0$ and $(k+1) \in \mathbb{Z}$, by the induction hypothesis, we have $y^{k+1}=y^j$ where $j=(k+i)\pmod 4$ and $0\leq j \leq 3$.\\ 
 \\
 d.iii)\\
 Let $ay^3+by^2+cy+d$ represent any 4-byte vector as polynomial.\\
@@ -160,7 +162,7 @@ $y^{k+1}(ay^3+by^2+cy+d)= y^k(y^1(ay^3+by^2+cy+d))$\\
 $= y^k(ay^{3+1}+by^{2+1}+cy^{1+1}+dy^{1})$\\
 $= ay^{3+(k+1)}+by^{2+(k+1)}+cy^{1+(k+1)}+dy^{k+1}$ (by IH)\\
 \\
-Since $k+1\geq 0$ and $y^{k+1}=y^j$ where $j=k+1 \pmod 4$ and $0\geq j\geq 3$, the multiplication of any 4-byte vector with $y^{k+1}$ is a left circular shift of $j$ bytes.\\
+Since $k+1\geq 0$ and $y^{k+1}=y^j$ where $j=k+1 \pmod 4$ and $0\leq j\leq 3$, the multiplication of any 4-byte vector with $y^{k+1}$ is a left circular shift of $j$ bytes.\\
 \\
 \end{answer}
 \end{problem}
@@ -211,12 +213,12 @@ $y^4\equiv 1 \pmod {y^4+1}$\\
 $y^5\equiv y \pmod {y^4+1}$\\
 $y^6\equiv y^2 \pmod {y^4+1}$\\
 \\
-$t(x)=c(y)s(y) \pmod {y^4+1}$\\
+$t(y)=c(y)s(y) \pmod {y^4+1}$\\
 $=[(03)y^3+(01)y^2+(01)y+(02)](s_3y^3+s_2y^2+s_1y+s_0) \pmod {y^4+1}$\\
 $=(03)(s_3y^6+s_2y^5+s_1y^4+s_0y^3)$\\
 $+(01)(s_3y^5+s_2y^4+s_1y^3+s_0y^2)$\\
 $+(01)(s_3y^4+s_2y^3+s_1y^2+s_0y)$\\
-$+(02)(s_3y^3+s_2y^2+s_1y+s_0)$\\
+$+(02)(s_3y^3+s_2y^2+s_1y+s_0) \pmod {y^4+1}$\\
 \\
 $=(03)s_3y^6$\\
 $+((03)s_2+(01)s_3)y^5$\\
@@ -224,7 +226,7 @@ $+((03)s_1+(01)s_2+(01)s_3)y^4$\\
 $+((03)s_0+(01)s_1+(01)s_2+(02)s_3)y^3$\\
 $+((01)s_0+(01)s_1+(02)s_2)y^2$\\
 $+((01)s_0+(02)s_1)y$\\
-$+(02)s_0$\\
+$+(02)s_0 \pmod {y^4+1}$\\
 \\
 $=(03)s_3y^2$\\
 $+((03)s_2+(01)s_3)y$\\
@@ -232,14 +234,12 @@ $+((03)s_1+(01)s_2+(01)s_3)$\\
 $+((03)s_0+(01)s_1+(01)s_2+(02)s_3)y^3$\\
 $+((01)s_0+(01)s_1+(02)s_2)y^2$\\
 $+((01)s_0+(02)s_1)y$\\
-$+(02)s_0$\\
+$+(02)s_0 \pmod {y^4+1}$\\
 \\
 $=((03)s_0+(01)s_1+(01)s_2+(02)s_3)y^3$\\
 $+((01)s_0+(01)s_1+(02)s_2+(03)s_3)y^2$\\
 $+((01)s_0+(02)s_1+(03)s_2+(01)s_3)y$\\
-$+((02)s_0+(03)s_1+(01)s_2+(01)s_3)$\\
-\\
-$t(x)=t_3y^3+t_2y^2+t_1y+t_0$\\
+$+((02)s_0+(03)s_1+(01)s_2+(01)s_3) \pmod {y^4+1}$\\
 \\
 c.ii)\\
 \[
@@ -259,24 +259,22 @@ C=
 \begin{problem}
 \begin{answer}
 \\
-a)\\
-i)\\
-ECB: Only $P_i$ is affected since each block is handled independently.\\
+Let $C_i$ denote the encryption of the i-th message block, $M_i$.\\
+Let $P_i$ denote the plaintext obtained from the decryption of $C_i$.\\
+\\
+a.i)\\
+ECB: Only $P_i$ is affected since the decryption of each block is just a simple block substitution(independent of each other).\\
 ii)\\
-CBC: $P_i$ and $P_{i+1}$ are affected since any $C_i$ block only affects the plaintext of the block following it.\\
+CBC: $P_i$ and $P_{i+1}$ are affected since $C_i$ will be combined with $P_{i+1}$ via an exclusive-OR.\\
 iii)\\
-OFB: Only $P_i$ is affected since OFB does not use $C_i$ in the decryption of $P_{i+1}$ (only during encryption)...or rather it relies on purely on the IV.\\
+OFB: Only $P_i$ is affected since any given decryption state has been generated exclusively from the previous state (eventually originating from the IV).\\
 iv)\\
-CFB: $P_i$ to $P_i+k$ are affected since only the last $k$ ciphertext blocks are kept in the register for decrypting.\\
+CFB: When using only one register, $P_i$ and $P_{i+1}$ are affected since only the last $k$ previous ciphertext blocks (in this case $k=1$) are kept in the register for decryption. \\
 v)\\
-CTR: Only $P_i$ is affected $CTR_i$ is simply a counter and is not dependent on the value of $C_i$.\\
+CTR: Only $P_i$ is affected since $CTR_i$ (the source of the output block that gets XORed with $C_i$) is simply an independent counter value.\\
 \\
 b)\\
-ECB: Only $P_i$\\
-CBC: All of them\\
-OFB: All of them\\
-CFB: Only $P_i$\\
-CTR: Only $P_i$\\
+All message blocks following (and including) $M_i$ are affected, since in CBC mode $C_i$ is used in the encryption of $C_{i+1}$ (and then $C_{i+1}$ gets used when encrypting $C_{i+2}$ and so on).\\
 \\
 \end{answer}
 \end{problem}
