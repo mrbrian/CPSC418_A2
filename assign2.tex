@@ -126,43 +126,31 @@ So given $f(x)=x$, then $f^-1(x)=(x^3+1)$\\
 d.i)\\
 $y*[ay^3+by^2+cy+d)]$\\
 $=ay^4+by^3+cy^2+dy$\\
-$=by^3+cy^2+dy+a$ (since $y^4=1$)\\
+$=by^3+cy^2+dy+a$ \tab (since $y^4\equiv 1 \pmod {y^4+1}$)\\
 \\
 d.ii)\\
-Prove that in this arithmetic, $y^i=y^j$ for any integer $i\geq 0$, where $j\equiv i \pmod 4$ with $0\leq j \leq 3$\\
-\\
-Base cases:\\
-$i=0$: $y^i=y^j$ since $0\equiv 0 \pmod 4$ and $j == 0$\\
-$i=1$: $y^i=y^j$ since $1\equiv 1 \pmod 4$ and $0 \leq j\leq 3$\\
-$i=2$: $y^i=y^j$ since $2\equiv 2 \pmod 4$ and $0\leq j \leq 3$\\
-$i=3$: $y^i=y^j$ since $3\equiv 3 \pmod 4$ and $j==3$\\
-\\
-Induction Hypothesis:\\
-Assume that $y^i=y^j$ for all $i\in \mathbb{Z}$, where $i \geq 0$ such that $j=i \pmod 4$ and $0\leq j \leq 3$.\\
-\\
-Suppose $4 \leq k$, where $k\in \mathbb{Z}$.\\
-Since $(k+1) \geq 0$ and $(k+1) \in \mathbb{Z}$, by the induction hypothesis, we have $y^{k+1}=y^j$ where $j=(k+i)\pmod 4$ and $0\leq j \leq 3$.\\ 
+Since $1\equiv y^4 \pmod {y^4+1}$,\\
+$y^i\equiv y^iy^4\equiv y^{i+4}\equiv y^j \pmod {y^4+1}$ where $j\equiv i+4\equiv i \pmod 4$.\\
 \\
 d.iii)\\
 Let $ay^3+by^2+cy+d$ represent any 4-byte vector as polynomial.\\
 \\
 Base case:\\
 $i=0$: $y^0(ay^3+by^2+cy+d)=ay^3+by^2+cy+d$ \\
-\tab No bytes have been shifted, so this is a circular left shift of 0 bytes. Using the proof from \emph{d.ii} we get that this is a shift of $j=0$ bytes. \\
-$i=1$: $y^1(ay^3+by^2+cy+d)$  Using the proofs from d.i and d.ii, this is a left circular shift of $j=1$ bytes.\\
+\tab No bytes have been shifted (ie. a circular left shift of 0 bytes). Using the proof from \emph{d.ii} we get that this is a shift of $j=0$ bytes. \\
+$i=1$: $y^1(ay^3+by^2+cy+d)$  This is a left circular shift of $j=1$ bytes (proven by d.i and d.ii).\\
 \\
 Induction Hypothesis:\\
-Assume for $i\geq 0$ that $y^i(ay^3+by^2+cy+d)=ay^{3+i}+by^{2+i}+cy^{1+i}+dy^i$ is a left circular shift of $j$ bytes where $j=i \pmod 4$ and $j\geq 0$.\\
+Assume for $i\geq 0$ that $y^i(ay^3+by^2+cy+d)=ay^{3+i}+by^{2+i}+cy^{1+i}+dy^i$ is a left circular shift of $j$ bytes where $j\equiv i \pmod 4$ and $0\leq j\leq 3$.\\
 \\
-Suppose $k \in \mathbb{Z}$ and $k \geq 2$.\\
+Suppose $k \in \mathbb{Z}$ and $k \geq 1$.\\
 %Show $y^{k+1}(ay^3+by^2+cy+d)$ is a left circular shift of k+1 bytes\\
 \\
 $y^{k+1}(ay^3+by^2+cy+d)= y^k(y^1(ay^3+by^2+cy+d))$\\
-%$= y^k(by^3+cy^2+dy+a)$ (a left circular shift of 1 byte)\\
 $= y^k(ay^{3+1}+by^{2+1}+cy^{1+1}+dy^{1})$\\
 $= ay^{3+(k+1)}+by^{2+(k+1)}+cy^{1+(k+1)}+dy^{k+1}$ (by IH)\\
 \\
-Since $k+1\geq 0$ and $y^{k+1}=y^j$ where $j=k+1 \pmod 4$ and $0\leq j\leq 3$, the multiplication of any 4-byte vector with $y^{k+1}$ is a left circular shift of $j$ bytes.\\
+Since $k+1\geq 0$ and $y^{k+1}=y^j$ where $j\equiv k+1 \pmod 4$ and $0\leq j\leq 3$ (proof d.ii), the multiplication of any 4-byte vector with $y^{k+1}$ is a left circular shift of $j$ bytes.\\
 \\
 \end{answer}
 \end{problem}
