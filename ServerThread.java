@@ -5,8 +5,10 @@ import java.io.*;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Thread to deal with clients who connect to Server.  Put what you want the
- * thread to do in it's run() method.
+ * Thread to deal with clients who connect to Server.  
+ * 
+ * @file Client.java
+ * @author Brian Yee
  */
 
 public class ServerThread extends Thread

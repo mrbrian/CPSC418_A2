@@ -4,9 +4,9 @@ Brian Yee
 
 Files Submitted:
 ----------------
-  Client.java - Client related code
+  Client.java - Client related code, sending of the encrypted file, waiting for acknowledgement
   Server.java - Server related code
-  ServerThread.java - ServerThread that handles receiving/decrypts incoming data from a client.
+  ServerThread.java - ServerThread code that handles receiving/decrypts incoming data from a client.
   CryptoUtilities.java - Encryption/decryption/file transfer/protocol message printing and helper methods.
 
 To Build:
@@ -25,6 +25,29 @@ To Run:
 Working in full.  No known bugs.
 
 Protocol:
-	int msg_length, byte[] message
-	each message is encrypted
-	the key is not transmitted online.
+   The client sends one message to the server containing the destination filename, filesize, and file data.
+   The message is structured as follows:
+      [ Filename size integer]  (4 bytes)
+      [ Filename ]              (x bytes)
+      [ Filesize integer ]      (4 bytes) 
+      [ File data ]             (y bytes)
+   After encryption, the length of the ciphertext and the ciphertext itself are sent to the server for decryption.
+   The server receives the length of the ciphertext, and reads in a matching number of bytes.
+   The server will then decrypt the ciphertext, verify the digest, and extract the information.
+   After a successful decryption, the server will send the plaintext message string, "SUCCESS", to the client.
+   If any error occurs during decryption, the server will send "FAILURE" to the client as plaintext.
+   The client then disconnects after receiving any plaintext message from the server.
+
+
+Data confidentiality is kept by encrypting all data before being transmission (excluding the size of an encrypted message 
+itself, and the plaintext SUCCESS/FAILURE messages).
+
+The SUCCESS/FAILURE messages are sent as plaintext so the client can read them if they entered the wrong key by mistake.
+
+The size of the encrypted message is necessary for accurate transmission and does not reveal much information about the contents.
+
+Data integrity is upheld by encrypting both the message and its HMACSHA1 digest together before transmission.
+
+Data integrity attacks are protected against by verifying the data integrity upon receiving any encrypted data.
+Data confidentiality attacks are protected against by encrypting the message with AES/CBC and by not transmitting key.
+

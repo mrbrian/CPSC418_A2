@@ -5,7 +5,10 @@ import java.nio.ByteBuffer;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Client program.  Connects to the server and sends text accross.
+ * Client program.  Connects to the server and sends an encrypted message.
+ * 
+ * @file Client.java
+ * @author Brian Yee
  */
 
 public class Client 

@@ -8,9 +8,9 @@ import javax.crypto.spec.*;
 /**
  * This class contains various utility functions for working with AES encryption
  * and decryption, and for working with HMAC-SHA1 message digests.
- *
- * @author Mike Jacobson
- * @version 1.0, September 25, 2013
+ * 
+ * @file CryptoUtilities.java
+ * @author Brian Yee
  */
 public class CryptoUtilities {
 

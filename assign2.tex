@@ -124,33 +124,43 @@ $x(x^3+1)\equiv 1  \pmod{x^4+x+1}$\\
 So given $f(x)=x$, then $f^-1(x)=(x^3+1)$\\
 \\
 d.i)\\
-$y*[ay^3+by^2+cy+d)]$\\
-$=ay^4+by^3+cy^2+dy$\\
-$=by^3+cy^2+dy+a$ \tab (since $y^4\equiv 1 \pmod {y^4+1}$)\\
+$y*(ay^3+by^2+cy+d)$\\
+$\equiv ay^4+by^3+cy^2+dy$\\
+$\equiv by^3+cy^2+dy+a \pmod {y^4+1}$ \tab (since $y^4\equiv 1 \pmod {y^4+1}$)\\
 \\
 d.ii)\\
 Since $1\equiv y^4 \pmod {y^4+1}$,\\
-$y^i\equiv y^iy^4\equiv y^{i+4}\equiv y^j \pmod {y^4+1}$ where $j\equiv i+4\equiv i \pmod 4$.\\
+$y^i\equiv y^iy^4\equiv y^{i+4}\equiv y^j \pmod {y^4+1}$ where $j\equiv i+4\equiv i \pmod 4$ and $0\leq j \leq 3$.\\
 \\
 d.iii)\\
-Let $ay^3+by^2+cy+d$ represent any 4-byte vector as polynomial.\\
+Let $b=ay^3+by^2+cy+d$ represent any 4-byte vector as polynomial.\\
+Since we have d.ii, this can be split into 4 cases.\\
 \\
-Base case:\\
-$i=0$: $y^0(ay^3+by^2+cy+d)=ay^3+by^2+cy+d$ \\
-\tab No bytes have been shifted (ie. a circular left shift of 0 bytes). Using the proof from \emph{d.ii} we get that this is a shift of $j=0$ bytes. \\
-$i=1$: $y^1(ay^3+by^2+cy+d)$  This is a left circular shift of $j=1$ bytes (proven by d.i and d.ii).\\
+Case $y^i\equiv y^0 \pmod {y^4+1}$: \\
+\tab$y^i*b=y^0(ay^3+by^2+cy+d)\equiv ay^3+by^2+cy+d \pmod {y^4+1}$ \\
+\tab This is a left circular shift of $j=0$ bytes.\\
 \\
-Induction Hypothesis:\\
-Assume for $i\geq 0$ that $y^i(ay^3+by^2+cy+d)=ay^{3+i}+by^{2+i}+cy^{1+i}+dy^i$ is a left circular shift of $j$ bytes where $j\equiv i \pmod 4$ and $0\leq j\leq 3$.\\
+Case $y^i\equiv y^1 \pmod {y^4+1}$: \\
+\tab$y^i*b=y^1(ay^3+by^2+cy+d)$\\
+\tab$\equiv by^3+cy^2+dy+a$  \tab (by d.i)\\
+\tab This is a left circular shift of $j=1$ bytes.\\
 \\
-Suppose $k \in \mathbb{Z}$ and $k \geq 1$.\\
-%Show $y^{k+1}(ay^3+by^2+cy+d)$ is a left circular shift of k+1 bytes\\
+Case $y^i\equiv y^2 \pmod {y^4+1}$: \\
+\tab$y^i*b=y^2(ay^3+by^2+cy+d)$\\
+\tab$=y^1(y^1(ay^3+by^2+cy+d))$  \\
+\tab$\equiv y^1(by^3+cy^2+dy+a)$ \tab (by d.i)\\
+\tab$\equiv cy^3+dy^2+ay+b \pmod {y^4+1}$ (by d.i) \\
+\tab This is a left circular shift of $j=2$ bytes.\\
 \\
-$y^{k+1}(ay^3+by^2+cy+d)= y^k(y^1(ay^3+by^2+cy+d))$\\
-$= y^k(ay^{3+1}+by^{2+1}+cy^{1+1}+dy^{1})$\\
-$= ay^{3+(k+1)}+by^{2+(k+1)}+cy^{1+(k+1)}+dy^{k+1}$ (by IH)\\
+Case $y^i\equiv y^3 \pmod {y^4+1}$: \\
+\tab$y^i*b=y^3(ay^3+by^2+cy+d)$\\
+\tab$=y^1y^1(y^1(ay^3+by^2+cy+d))$  \\
+\tab$\equiv y^1(y^1(by^3+cy^2+dy+a))$ \tab (by d.i)\\
+\tab$\equiv y^1(cy^3+dy^2+ay+b) $ \tab\tab (by d.i)\\
+\tab$\equiv dy^3+ay^2+by+c \pmod {y^4+1}$  (by d.i)\\
+\tab This is a left circular shift of $j=3$ bytes.\\
 \\
-Since $k+1\geq 0$ and $y^{k+1}=y^j$ where $j\equiv k+1 \pmod 4$ and $0\leq j\leq 3$ (proof d.ii), the multiplication of any 4-byte vector with $y^{k+1}$ is a left circular shift of $j$ bytes.\\
+In all cases, it is shown that multiplying any 4-byte vector by $y^i$ ($i\geq 0$) is a circular left shift of j bytes where $j\equiv i \pmod 4$ and $0\leq j \leq 3$ (d.ii).\\
 \\
 \end{answer}
 \end{problem}
@@ -252,17 +262,16 @@ Let $P_i$ denote the plaintext obtained from the decryption of $C_i$.\\
 \\
 a.i)\\
 ECB: Only $P_i$ is affected since the decryption of each block is just a simple block substitution(independent of each other).\\
-ii)\\
-CBC: $P_i$ and $P_{i+1}$ are affected since $C_i$ will be combined with $P_{i+1}$ via an exclusive-OR.\\
+ii)\\CBC: $P_i$ and $P_{i+1}$ are affected since $P_{i+1}$ is the result of $C_i \oplus C_{i+1}$ but $P_{i+2}$ is the result of  $C_{i+1} \oplus C_{i+2}$(does not depend on $C_i$).\\
 iii)\\
-OFB: Only $P_i$ is affected since any given decryption state has been generated exclusively from the previous state (eventually originating from the IV).\\
+OFB: Only $P_i$ is affected since any given decryption state has been generated exclusively from the previous state (which eventually originates from the IV).\\
 iv)\\
-CFB: When using only one register, $P_i$ and $P_{i+1}$ are affected since only the last $k$ previous ciphertext blocks (in this case $k=1$) are kept in the register for decryption. \\
+CFB: All plaintext blocks starting from $P_i$ are affected since the $C_i$ will be added to the register for encrypting $P_{i+1}$ into $C_{i+1}$.  As a result, even if the plaintext blocks after $P_i$ are error-free, they will still be encrypted using ciphertext that was created from the errant plaintext block, $P_i$.\\
 v)\\
 CTR: Only $P_i$ is affected since $CTR_i$ (the source of the output block that gets XORed with $C_i$) is simply an independent counter value.\\
 \\
 b)\\
-All message blocks following (and including) $M_i$ are affected, since in CBC mode $C_i$ is used in the encryption of $C_{i+1}$ (and then $C_{i+1}$ gets used when encrypting $C_{i+2}$ and so on).\\
+The error happens before any encryption takes place, so the entire plaintext would be encrypted and decrypted normally, as if the plaintext had no errors in it.  Thus, only $M_i$ would be affected.\\
 \\
 \end{answer}
 \end{problem}
