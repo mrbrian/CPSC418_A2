@@ -39,28 +39,16 @@ Total & \\ \hline
 1.a)\\
 $H(M|C)=\sum_{c\in C}p(C)\sum_{m\in M}p(M|C)log_2(\frac{1}{p(M|C)})$\\
 $H(M|C)=\sum p(C)\sum p(M|C)log_2(\frac{1}{p(M|C)})$\\
-%$=\frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2)) + \frac{1}{4}(\frac{1}{2}log_2(2) + \frac{1}{2}log_2(2))$\\
 $=4*\frac{1}{4}(\frac{1}{2}log_2(2)+ \frac{1}{2}log_2(2))$\\
 $=1$\\
 \\
 1.b)\\
 $H(M|C)=\sum p(C)\sum p(M|C)log_2(\frac{1}{p(M|C)})$\\
-
-Since the cryptosystem provides perfect secrecy, $p(M|C)=p(M)$.\\
-
-$=\sum p(C)\sum p(M)log_2(\frac{1}{p(M)})$\\
-
-We know $\sum p(M)log_2(\frac{1}{p(M)})=log_2(\frac{1}{p(M)})$, when a cryptosystem provides perfect secrecy. \\
-
-$=\sum p(C)log_2(\frac{1}{p(M)})$\\
-\\
-With perfect secrecy, every M is equiprobable, so every C is equiprobable.
-Since $|C| = |M|$  (as every unique C comes from encrypting some unique M), so we have
-p(C) = p(M).\\
-\\
-Thus,\\
-
-$=\sum p(M)log_2(\frac{1}{p(M)})$\\
+$=\sum p(C)\sum p(M)log_2(\frac{1}{p(M)})$ (since with perfect secrecy, $p(M|C)=p(M)$)\\
+$=\sum p(M)log_2(\frac{1}{p(M)}) * \sum p(C)$  (since the log is independent of C)\\
+$=\sum p(M)log_2(\frac{1}{p(M)}) * |C|*\frac{1}{|C|}$  (since each ciphertext is equiprobable)\\ 
+$=\sum p(M)log_2(\frac{1}{p(M)}) * 1$ \\
+$=\sum p(M)log_2(\frac{1}{p(M)})$ \\
 $=H(M)$\\
 \\
 1.c)\\
@@ -103,6 +91,7 @@ Let $A_2(x)=x^3+x^2+1$, then \\
 \tab$A_2(0)=0+0+1=1$ and $A_2(-1)=-1+1+1=1$\\
 \\
 Neither $A_1(x)$ or $A_2(x)$ have $P_1$ or $P_2$ as factors, and are therefore irreducible.\\
+\\
 \\
 2.b.i)\\
 Since $x^4+x+1\equiv 0  \pmod{x^4+x+1}$\\
@@ -152,6 +141,7 @@ Case $y^i\equiv y^2 \pmod {y^4+1}$: \\
 \tab$\equiv cy^3+dy^2+ay+b \pmod {y^4+1}$ (by d.i) \\
 \tab This is a left circular shift of $j=2$ bytes.\\
 \\
+\\
 Case $y^i\equiv y^3 \pmod {y^4+1}$: \\
 \tab$y^i*b=y^3(ay^3+by^2+cy+d)$\\
 \tab$=y^1y^1(y^1(ay^3+by^2+cy+d))$  \\
@@ -187,24 +177,32 @@ $d=b_6x^7+b_5x^6+b_4x^5+(b_7+b_3)x^4+(b_7+b_2)x^3+b_1x^2+(b_7+b_0)x+b_7$\\
 $d_7=b_6$\\
 $d_6=b_5$\\
 $d_5=b_4$\\
-$d_4=b_7\oplus b_3$\\
-$d_3=b_7\oplus b_2$\\
+$d_4=b_7+b_3$\\
+$d_3=b_7+b_2$\\
 $d_2=b_1$\\
-$d_1=b_7\oplus b_0$\\
+$d_1=b_7+b_0$\\
 $d_0=b_7$\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
 \\
 b.iii)\\
 $(03)(b)=(x+1)(b_7x^7+...+b_1x+b_0)$\\
 $=(b_7x^8+b_6x^7+...+b_1x^2+b_0x)+(b_7x^7+...+b_1x+b_0)$\\
-$=b_7(x^4+x^3+x+1)+(b_6\oplus b_7)x^7+...+(b_0\oplus b_1)x+b_0)$\\
-$d_7=b_6\oplus b_7$\\
-$d_6=b_5\oplus b_6$\\
-$d_5=b_4\oplus b_5$\\
-$d_4=b_3\oplus b_4 \oplus b_7$\\
-$d_3=b_2\oplus b_3 \oplus b_7$\\
-$d_2=b_1\oplus b_2$\\
-$d_1=b_0\oplus b_1 \oplus b_7$\\
-$d_0=b_0 \oplus b_7$\\
+$=b_7(x^4+x^3+x+1)+(b_6+b_7)x^7+...+(b_0+b_1)x+b_0)$\\
+$d_7=b_6+b_7$\\
+$d_6=b_5+b_6$\\
+$d_5=b_4+b_5$\\
+$d_4=b_3+b_4 +b_7$\\
+$d_3=b_2+b_3 +b_7$\\
+$d_2=b_1+b_2$\\
+$d_1=b_0+b_1 +b_7$\\
+$d_0=b_0 +b_7$\\
 
 c.i)\\
 $y^4\equiv 1 \pmod {y^4+1}$\\
@@ -239,14 +237,24 @@ $+((01)s_0+(01)s_1+(02)s_2+(03)s_3)y^2$\\
 $+((01)s_0+(02)s_1+(03)s_2+(01)s_3)y$\\
 $+((02)s_0+(03)s_1+(01)s_2+(01)s_3) \pmod {y^4+1}$\\
 \\
+\\
+\\
+\\
 c.ii)\\
 \[
 C=
 \begin{bmatrix}
-3 & 1 & 1 & 2 \\
-1 & 1 & 2 & 3\\
-1 & 2 & 3 & 1\\
+t_0\\
+t_1\\
+t_2\\
+t_3\\
+\end{bmatrix}
+=
+\begin{bmatrix}
 2 & 3 & 1 & 1\\
+1 & 2 & 3 & 1\\
+1 & 1 & 2 & 3\\
+3 & 1 & 1 & 2 \\
 \end{bmatrix}
 \]
 \\
@@ -266,7 +274,7 @@ ii)\\CBC: $P_i$ and $P_{i+1}$ are affected since $P_{i+1}$ is the result of $C_i
 iii)\\
 OFB: Only $P_i$ is affected since any given decryption state has been generated exclusively from the previous state (which eventually originates from the IV).\\
 iv)\\
-CFB: All plaintext blocks starting from $P_i$ are affected since the $C_i$ will be added to the register for encrypting $P_{i+1}$ into $C_{i+1}$.  As a result, even if the plaintext blocks after $P_i$ are error-free, they will still be encrypted using ciphertext that was created from the errant plaintext block, $P_i$.\\
+CFB: Only $P_i$ and $P_{i+1}$ are affected.  $C_i$ is involved in decrypting $P_{i+1}$ (when it gets combined with the key to create the next cipher block) but $C_{i+1}$ will take its place (in creating the next cipher block) for decrypting $P_{i+2}$.\\
 v)\\
 CTR: Only $P_i$ is affected since $CTR_i$ (the source of the output block that gets XORed with $C_i$) is simply an independent counter value.\\
 \\
