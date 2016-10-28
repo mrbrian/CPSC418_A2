@@ -4,6 +4,8 @@ Brian Yee
 
 Files Submitted:
 ----------------
+  README 
+  assign2.pdf - written portion
   Client.java - Client related code, sending of the encrypted file, waiting for acknowledgement
   Server.java - Server related code
   ServerThread.java - ServerThread code that handles receiving/decrypts incoming data from a client.

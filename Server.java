@@ -8,6 +8,7 @@ import java.util.Vector;
  * Server application for Java socket programming with multithreading.
  * Opens a server socket and listens for clients.  When one connects
  * a thread is spawned to deal with the client.
+ * 
  * @file Client.java
  * @author Brian Yee
  */
